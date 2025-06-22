@@ -1,0 +1,158 @@
+<div class="page-container">
+  <mat-card class="form-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>work</mat-icon>
+        Submit Job Application
+      </mat-card-title>
+      <mat-card-subtitle>
+        Track your job application progress
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="jobForm" (ngSubmit)="onSubmit()" class="job-form">
+        <!-- Job Title and Company Row -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Job Title</mat-label>
+            <input
+              matInput
+              formControlName="jobTitle"
+              placeholder="e.g. Senior Software Engineer"
+              required>
+            <mat-icon matSuffix>work</mat-icon>
+            <mat-error *ngIf="jobForm.get('jobTitle')?.invalid && jobForm.get('jobTitle')?.touched">
+              {{ getErrorMessage('jobTitle') }}
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Company</mat-label>
+            <input
+              matInput
+              formControlName="company"
+              placeholder="e.g. Google, Microsoft"
+              required>
+            <mat-icon matSuffix>business</mat-icon>
+            <mat-error *ngIf="jobForm.get('company')?.invalid && jobForm.get('company')?.touched">
+              {{ getErrorMessage('company') }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Date Applied and Status Row -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Date Applied</mat-label>
+            <input
+              matInput
+              [matDatepicker]="picker"
+              formControlName="dateApplied"
+              required>
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+            <mat-error *ngIf="jobForm.get('dateApplied')?.invalid && jobForm.get('dateApplied')?.touched">
+              {{ getErrorMessage('dateApplied') }}
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Status</mat-label>
+            <mat-select formControlName="status" required>
+              <mat-option *ngFor="let status of statusOptions" [value]="status.value">
+                <mat-icon>{{ status.icon }}</mat-icon>
+                <span class="option-text">{{ status.label }}</span>
+              </mat-option>
+            </mat-select>
+            <mat-icon matSuffix>flag</mat-icon>
+            <mat-error *ngIf="jobForm.get('status')?.invalid && jobForm.get('status')?.touched">
+              {{ getErrorMessage('status') }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Location and Salary Row -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Location</mat-label>
+            <input
+              matInput
+              formControlName="location"
+              placeholder="e.g. San Francisco, CA or Remote">
+            <mat-icon matSuffix>location_on</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Salary</mat-label>
+            <input
+              matInput
+              type="number"
+              formControlName="salary"
+              placeholder="Annual salary">
+            <span matPrefix class="currency-prefix">$</span>
+            <mat-icon matSuffix>attach_money</mat-icon>
+            <mat-error *ngIf="jobForm.get('salary')?.invalid && jobForm.get('salary')?.touched">
+              {{ getErrorMessage('salary') }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Job URL Row -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Job URL</mat-label>
+            <input
+              matInput
+              formControlName="jobUrl"
+              placeholder="https://company.com/jobs/position">
+            <mat-icon matSuffix>link</mat-icon>
+            <mat-error *ngIf="jobForm.get('jobUrl')?.invalid && jobForm.get('jobUrl')?.touched">
+              {{ getErrorMessage('jobUrl') }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Notes Row -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Notes</mat-label>
+            <textarea
+              matInput
+              formControlName="notes"
+              rows="4"
+              placeholder="Any additional notes about this application..."></textarea>
+            <mat-icon matSuffix>notes</mat-icon>
+            <mat-hint>{{ (jobForm.get('notes')?.value?.length || 0) }}/500 characters</mat-hint>
+            <mat-error *ngIf="jobForm.get('notes')?.invalid && jobForm.get('notes')?.touched">
+              {{ getErrorMessage('notes') }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </form>
+    </mat-card-content>
+
+    <mat-card-actions align="end">
+      <button
+        mat-button
+        type="button"
+        (click)="navigateToDashboard()"
+        class="secondary-button">
+        <mat-icon>dashboard</mat-icon>
+        View Dashboard
+      </button>
+
+      <button
+        mat-raised-button
+        color="primary"
+        type="submit"
+        [disabled]="jobForm.invalid || isSubmitting"
+        (click)="onSubmit()"
+        class="submit-button">
+        <mat-spinner *ngIf="isSubmitting" diameter="20" class="button-spinner"></mat-spinner>
+        <mat-icon *ngIf="!isSubmitting">send</mat-icon>
+        <span>{{ isSubmitting ? 'Submitting...' : 'Submit Application' }}</span>
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>

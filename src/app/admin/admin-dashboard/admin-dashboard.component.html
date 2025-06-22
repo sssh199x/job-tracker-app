@@ -1,0 +1,226 @@
+<div class="page-container">
+  <!-- Admin Header -->
+  <mat-card class="header-card admin-header">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>admin_panel_settings</mat-icon>
+        Admin Dashboard
+      </mat-card-title>
+      <mat-card-subtitle>
+        System overview and application management
+      </mat-card-subtitle>
+    </mat-card-header>
+  </mat-card>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="loading$ | async" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading admin data...</p>
+  </div>
+
+  <!-- Admin Content -->
+  <div *ngIf="!(loading$ | async)">
+    <!-- Statistics Cards -->
+    <div class="stats-grid" *ngIf="stats$ | async as stats">
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon color="primary" class="stat-icon">work</mat-icon>
+            <div class="stat-info">
+              <span class="stat-number">{{ stats.totalApplications }}</span>
+              <span class="stat-label">Total Applications</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon color="accent" class="stat-icon">people</mat-icon>
+            <div class="stat-info">
+              <span class="stat-number">{{ stats.totalUsers }}</span>
+              <span class="stat-label">Total Users</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon style="color: #4caf50;" class="stat-icon">trending_up</mat-icon>
+            <div class="stat-info">
+              <span class="stat-number">{{ stats.recentApplications }}</span>
+              <span class="stat-label">This Week</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon style="color: #ff9800;" class="stat-icon">schedule</mat-icon>
+            <div class="stat-info">
+              <span class="stat-number">{{ stats.applicationsByStatus['interview'] || 0 }}</span>
+              <span class="stat-label">Interviews</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Admin Tabs -->
+    <mat-tab-group class="admin-tabs">
+      <!-- All Applications Tab -->
+      <mat-tab label="All Applications">
+        <div class="tab-content">
+          <!-- Export Actions -->
+          <div class="table-actions">
+            <span class="table-title">All User Applications</span>
+            <div class="actions">
+              <button mat-button [matMenuTriggerFor]="exportMenu" [disabled]="currentApplications.length === 0">
+                <mat-icon>download</mat-icon>
+                Export All
+              </button>
+
+              <mat-menu #exportMenu="matMenu">
+                <button mat-menu-item (click)="exportAllAsCSV()">
+                  <mat-icon>table_chart</mat-icon>
+                  <span>Export as CSV</span>
+                </button>
+                <button mat-menu-item (click)="exportAllAsJSON()">
+                  <mat-icon>code</mat-icon>
+                  <span>Export as JSON</span>
+                </button>
+              </mat-menu>
+            </div>
+          </div>
+
+          <!-- Applications Table -->
+          <mat-card class="table-card">
+            <mat-card-content>
+              <div *ngIf="currentApplications.length === 0" class="no-data">
+                <mat-icon class="no-data-icon">work_off</mat-icon>
+                <h3>No Applications Found</h3>
+                <p>No users have submitted job applications yet.</p>
+              </div>
+
+              <div *ngIf="currentApplications.length > 0" class="table-container">
+                <mat-table [dataSource]="currentApplications" class="applications-table">
+                  <!-- User Email Column -->
+                  <ng-container matColumnDef="userEmail">
+                    <mat-header-cell *matHeaderCellDef class="header-cell">
+                      <mat-icon>person</mat-icon>
+                      User
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let app" class="user-cell">
+                      {{ getUserEmail(app.userId) }}
+                    </mat-cell>
+                  </ng-container>
+
+                  <!-- Job Title Column -->
+                  <ng-container matColumnDef="jobTitle">
+                    <mat-header-cell *matHeaderCellDef class="header-cell">
+                      <mat-icon>work</mat-icon>
+                      Job Title
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let app" class="job-title-cell">
+                      {{ app.jobTitle }}
+                    </mat-cell>
+                  </ng-container>
+
+                  <!-- Company Column -->
+                  <ng-container matColumnDef="company">
+                    <mat-header-cell *matHeaderCellDef class="header-cell">
+                      <mat-icon>business</mat-icon>
+                      Company
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let app" class="company-cell">
+                      {{ app.company }}
+                    </mat-cell>
+                  </ng-container>
+
+                  <!-- Date Applied Column -->
+                  <ng-container matColumnDef="dateApplied">
+                    <mat-header-cell *matHeaderCellDef class="header-cell">
+                      <mat-icon>date_range</mat-icon>
+                      Date Applied
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let app">
+                      {{ formatDate(app.dateApplied) | date:'short' }}
+                    </mat-cell>
+                  </ng-container>
+
+                  <!-- Location Column -->
+                  <ng-container matColumnDef="location">
+                    <mat-header-cell *matHeaderCellDef class="header-cell">
+                      <mat-icon>location_on</mat-icon>
+                      Location
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let app">
+                      {{ app.location || 'Remote' }}
+                    </mat-cell>
+                  </ng-container>
+
+                  <!-- Status Column -->
+                  <ng-container matColumnDef="status">
+                    <mat-header-cell *matHeaderCellDef class="header-cell">
+                      <mat-icon>flag</mat-icon>
+                      Status
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let app">
+                      <mat-chip
+                        [color]="getStatusColor(app.status)"
+                        [class]="'status-chip ' + getStatusClass(app.status)">
+                        {{ app.status | titlecase }}
+                      </mat-chip>
+                    </mat-cell>
+                  </ng-container>
+
+                  <!-- Salary Column -->
+                  <ng-container matColumnDef="salary">
+                    <mat-header-cell *matHeaderCellDef class="header-cell">
+                      <mat-icon>attach_money</mat-icon>
+                      Salary
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let app">
+                      {{ app.salary ? (app.salary | currency) : 'Not specified' }}
+                    </mat-cell>
+                  </ng-container>
+
+                  <!-- Actions Column -->
+                  <ng-container matColumnDef="actions">
+                    <mat-header-cell *matHeaderCellDef class="header-cell">Actions</mat-header-cell>
+                    <mat-cell *matCellDef="let app">
+                      <button *ngIf="app.jobUrl"
+                              mat-icon-button
+                              (click)="openJobUrl(app.jobUrl)"
+                              matTooltip="View Job Posting">
+                        <mat-icon>open_in_new</mat-icon>
+                      </button>
+                      <span *ngIf="!app.jobUrl" class="no-link">-</span>
+                    </mat-cell>
+                  </ng-container>
+
+                  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+                  <mat-row *matRowDef="let row; columns: displayedColumns;"
+                           class="table-row"
+                           [class.highlight-row]="row.status === 'offer'"></mat-row>
+                </mat-table>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-tab>
+
+      <!-- User Management Tab -->
+      <mat-tab label="User Management">
+        <div class="tab-content">
+          <app-user-management></app-user-management>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+</div>

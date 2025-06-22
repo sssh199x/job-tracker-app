@@ -1,0 +1,120 @@
+.page-container {
+  padding: 24px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.form-card {
+  border: 1px solid var(--border-color);
+}
+
+.form-card mat-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.5rem;
+  color: var(--text-primary);
+}
+
+.job-form {
+  margin-top: 16px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-row .mat-form-field {
+  flex: 1;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.option-text {
+  margin-left: 8px;
+}
+
+.secondary-button {
+  margin-right: 8px;
+}
+
+.submit-button {
+  position: relative;
+}
+
+.button-spinner {
+  margin-right: 8px;
+}
+
+.button-spinner ::ng-deep circle {
+  stroke: white;
+}
+
+/* Currency prefix styling */
+.currency-prefix {
+  margin-left: 8px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Form field customization */
+.mat-form-field {
+  margin-bottom: 8px;
+}
+
+.mat-form-field-appearance-outline .mat-form-field-outline {
+  border-radius: 8px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .page-container {
+    padding: 16px;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-card mat-card-title {
+    font-size: 1.3rem;
+  }
+
+  .submit-button span {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-container {
+    padding: 8px;
+  }
+
+  .form-card {
+    margin: 0;
+  }
+}
+
+/* Dark theme specific adjustments */
+html.dark-theme {
+  .form-card {
+    background-color: var(--card-background);
+  }
+
+  .mat-form-field-appearance-outline .mat-form-field-outline-thick {
+    color: var(--primary-color);
+  }
+
+  .mat-form-field-appearance-outline.mat-focused .mat-form-field-outline-thick {
+    color: var(--primary-color);
+  }
+
+  .currency-prefix {
+    color: var(--text-secondary);
+  }
+}

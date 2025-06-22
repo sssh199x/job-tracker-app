@@ -1,0 +1,187 @@
+<div class="page-container">
+  <!-- Header Card -->
+  <mat-card class="header-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>dashboard</mat-icon>
+        Job Applications Dashboard
+      </mat-card-title>
+      <mat-card-subtitle>
+        Track and manage your job applications
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <!-- Summary Statistics -->
+      <div class="stats-container" *ngIf="currentApplications.length > 0">
+        <div class="stat-item">
+          <mat-icon color="primary">work</mat-icon>
+          <div class="stat-content">
+            <span class="stat-number">{{ currentApplications.length }}</span>
+            <span class="stat-label">Total Applications</span>
+          </div>
+        </div>
+
+        <div class="stat-item">
+          <mat-icon color="accent">schedule</mat-icon>
+          <div class="stat-content">
+            <span class="stat-number">{{ getStatusCounts().interview }}</span>
+            <span class="stat-label">Interviews</span>
+          </div>
+        </div>
+
+        <div class="stat-item">
+          <mat-icon style="color: #4caf50;">celebration</mat-icon>
+          <div class="stat-content">
+            <span class="stat-number">{{ getStatusCounts().offer }}</span>
+            <span class="stat-label">Offers</span>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+
+    <mat-card-actions align="end">
+      <span class="last-updated">
+        <mat-icon>update</mat-icon>
+        {{ lastUpdated | date:'medium' }}
+      </span>
+
+      <button mat-icon-button (click)="refresh()"
+              matTooltip="Refresh">
+        <mat-icon>refresh</mat-icon>
+      </button>
+
+      <button mat-button
+              [matMenuTriggerFor]="exportMenu"
+              [disabled]="currentApplications.length === 0">
+        <mat-icon>download</mat-icon>
+        Export
+      </button>
+
+      <mat-menu #exportMenu="matMenu">
+        <button mat-menu-item (click)="exportAsCSV()">
+          <mat-icon>table_chart</mat-icon>
+          <span>Export as CSV</span>
+        </button>
+        <button mat-menu-item (click)="exportAsJSON()">
+          <mat-icon>code</mat-icon>
+          <span>Export as JSON</span>
+        </button>
+      </mat-menu>
+    </mat-card-actions>
+  </mat-card>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="loading$ | async" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading applications...</p>
+  </div>
+
+  <!-- Applications Table -->
+  <mat-card *ngIf="!(loading$ | async)" class="table-card">
+    <mat-card-content>
+      <div *ngIf="currentApplications.length === 0" class="no-data">
+        <mat-icon class="no-data-icon">work_off</mat-icon>
+        <h3>No Applications Yet</h3>
+        <p>Start tracking your job applications by adding your first application.</p>
+        <button mat-raised-button color="primary" routerLink="/job-form">
+          <mat-icon>add</mat-icon>
+          Add First Application
+        </button>
+      </div>
+
+      <div *ngIf="currentApplications.length > 0" class="table-container">
+        <mat-table [dataSource]="currentApplications" class="applications-table">
+          <!-- Job Title Column -->
+          <ng-container matColumnDef="jobTitle">
+            <mat-header-cell *matHeaderCellDef class="header-cell">
+              <mat-icon>work</mat-icon>
+              Job Title
+            </mat-header-cell>
+            <mat-cell *matCellDef="let app" class="job-title-cell">
+              {{ app.jobTitle }}
+            </mat-cell>
+          </ng-container>
+
+          <!-- Company Column -->
+          <ng-container matColumnDef="company">
+            <mat-header-cell *matHeaderCellDef class="header-cell">
+              <mat-icon>business</mat-icon>
+              Company
+            </mat-header-cell>
+            <mat-cell *matCellDef="let app" class="company-cell">
+              {{ app.company }}
+            </mat-cell>
+          </ng-container>
+
+          <!-- Date Applied Column -->
+          <ng-container matColumnDef="dateApplied">
+            <mat-header-cell *matHeaderCellDef class="header-cell">
+              <mat-icon>date_range</mat-icon>
+              Date Applied
+            </mat-header-cell>
+            <mat-cell *matCellDef="let app">
+              {{ formatDate(app.dateApplied) | date:'short' }}
+            </mat-cell>
+          </ng-container>
+
+          <!-- Location Column -->
+          <ng-container matColumnDef="location">
+            <mat-header-cell *matHeaderCellDef class="header-cell">
+              <mat-icon>location_on</mat-icon>
+              Location
+            </mat-header-cell>
+            <mat-cell *matCellDef="let app">
+              {{ app.location || 'Remote' }}
+            </mat-cell>
+          </ng-container>
+
+          <!-- Status Column -->
+          <ng-container matColumnDef="status">
+            <mat-header-cell *matHeaderCellDef class="header-cell">
+              <mat-icon>flag</mat-icon>
+              Status
+            </mat-header-cell>
+            <mat-cell *matCellDef="let app">
+              <mat-chip
+                [color]="getStatusColor(app.status)"
+                [class]="'status-chip ' + getStatusClass(app.status)">
+                {{ app.status | titlecase }}
+              </mat-chip>
+            </mat-cell>
+          </ng-container>
+
+          <!-- Salary Column -->
+          <ng-container matColumnDef="salary">
+            <mat-header-cell *matHeaderCellDef class="header-cell">
+              <mat-icon>attach_money</mat-icon>
+              Salary
+            </mat-header-cell>
+            <mat-cell *matCellDef="let app">
+              {{ app.salary ? (app.salary | currency) : 'Not specified' }}
+            </mat-cell>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <mat-header-cell *matHeaderCellDef class="header-cell">Actions</mat-header-cell>
+            <mat-cell *matCellDef="let app">
+              <button *ngIf="app.jobUrl"
+                      mat-icon-button
+                      (click)="openJobUrl(app.jobUrl)"
+                      matTooltip="View Job Posting">
+                <mat-icon>open_in_new</mat-icon>
+              </button>
+              <span *ngIf="!app.jobUrl" class="no-link">-</span>
+            </mat-cell>
+          </ng-container>
+
+          <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+          <mat-row *matRowDef="let row; columns: displayedColumns;"
+                   class="table-row"
+                   [class.highlight-row]="row.status === 'offer'"></mat-row>
+        </mat-table>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

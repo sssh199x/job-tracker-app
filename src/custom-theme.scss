@@ -1,0 +1,281 @@
+@use '@angular/material' as mat;
+
+// Include the common styles for Angular Material
+@include mat.core();
+
+// Define custom color palettes for Modern Purple scheme
+$job-tracker-primary: mat.m2-define-palette(mat.$m2-deep-purple-palette, 500, 300, 700);
+$job-tracker-accent: mat.m2-define-palette(mat.$m2-orange-palette, 500, 300, 700);
+$job-tracker-warn: mat.m2-define-palette(mat.$m2-red-palette);
+
+// Create light theme
+$job-tracker-light-theme: mat.m2-define-light-theme((
+  color: (
+    primary: $job-tracker-primary,
+    accent: $job-tracker-accent,
+    warn: $job-tracker-warn,
+  ),
+  typography: mat.m2-define-typography-config(
+    $font-family: 'Roboto, "Helvetica Neue", sans-serif',
+    $headline-1: mat.m2-define-typography-level(2rem, 2.5rem, 300),
+    $headline-2: mat.m2-define-typography-level(1.75rem, 2.25rem, 400),
+    $headline-3: mat.m2-define-typography-level(1.5rem, 2rem, 400),
+    $body-1: mat.m2-define-typography-level(1rem, 1.5rem, 400),
+    $body-2: mat.m2-define-typography-level(0.875rem, 1.25rem, 400),
+  ),
+  density: 0,
+));
+
+// Create dark theme
+$job-tracker-dark-theme: mat.m2-define-dark-theme((
+  color: (
+    primary: $job-tracker-primary,
+    accent: $job-tracker-accent,
+    warn: $job-tracker-warn,
+  ),
+  typography: mat.m2-define-typography-config(
+    $font-family: 'Roboto, "Helvetica Neue", sans-serif',
+  ),
+  density: 0,
+));
+
+// Apply the light theme by default
+html {
+  @include mat.all-component-themes($job-tracker-light-theme);
+}
+
+// Custom CSS variables (separate from theme includes)
+:root {
+  // Light theme colors
+  --primary-color: #673ab7;
+  --accent-color: #ff9800;
+  --primary-light: #9575cd;
+  --primary-dark: #512da8;
+  --accent-light: #ffcc02;
+  --accent-dark: #f57c00;
+
+  // Background colors - light theme
+  --surface-color: #fafafa;
+  --background-color: #ffffff;
+  --card-background: #ffffff;
+  --text-primary: rgba(0, 0, 0, 0.87);
+  --text-secondary: rgba(0, 0, 0, 0.6);
+  --border-color: rgba(0, 0, 0, 0.12);
+  --divider-color: rgba(0, 0, 0, 0.06);
+  --hover-color: rgba(0, 0, 0, 0.04);
+}
+
+// Dark theme styles
+html.dark-theme {
+  @include mat.all-component-colors($job-tracker-dark-theme);
+
+  & {
+    // Adjusted colors for better dark mode contrast
+    --primary-color: #b39ddb;
+    --accent-color: #ffb74d;
+    --primary-light: #d1c4e9;
+    --primary-dark: #9575cd;
+    --accent-light: #ffe082;
+    --accent-dark: #ffb74d;
+
+    // Brighter dark theme backgrounds
+    --surface-color: #1a1a1a;
+    --background-color: #121212;
+    --card-background: #383838;         // Much lighter gray
+    --text-primary: rgba(255, 255, 255, 0.87);
+    --text-secondary: rgba(255, 255, 255, 0.6);
+    --border-color: rgba(255, 255, 255, 0.12);
+    --divider-color: rgba(255, 255, 255, 0.06);
+    --hover-color: rgba(255, 255, 255, 0.04);
+  }
+}
+
+// Custom component styling for Material 2
+.mat-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  border-radius: 12px !important;
+  background-color: var(--card-background) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.mat-button, .mat-raised-button, .mat-stroked-button {
+  border-radius: 8px !important;
+  text-transform: none !important;
+  font-weight: 500 !important;
+}
+
+.mat-raised-button {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.mat-table {
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  background-color: var(--card-background) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.mat-header-cell {
+  border-bottom: 1px solid var(--border-color) !important;
+  background-color: var(--surface-color) !important;
+  color: var(--primary-color) !important;
+}
+
+.mat-cell {
+  border-bottom: 1px solid var(--divider-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.mat-row:hover {
+  background-color: var(--hover-color) !important;
+}
+
+.mat-form-field {
+  .mat-form-field-outline {
+    border-radius: 8px !important;
+  }
+}
+
+// Material Select Dropdown Styling
+.mat-select-panel {
+  background-color: var(--card-background) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.mat-option {
+  color: var(--text-primary) !important;
+  border-radius: 4px !important;
+  margin: 2px 8px !important;
+
+  .mat-icon {
+    color: var(--primary-color) !important;
+    opacity: 0.8;
+    margin-right: 8px;
+  }
+
+  &:hover {
+    background-color: var(--hover-color) !important;
+
+    .mat-icon {
+      color: var(--primary-color) !important;
+      opacity: 1;
+    }
+  }
+
+  &.mat-selected {
+    background-color: rgba(103, 58, 183, 0.1) !important;
+
+    .mat-icon {
+      color: var(--primary-color) !important;
+      opacity: 1;
+    }
+  }
+
+  &.mat-active {
+    background-color: var(--hover-color) !important;
+  }
+}
+
+// Enhanced status chip styles for better dark mode visibility
+.status-chip {
+  font-weight: 500 !important;
+  border-radius: 16px !important;
+
+  &.applied {
+    background-color: rgba(179, 157, 219, 0.2) !important;
+    color: var(--primary-light) !important;
+    border: 1px solid rgba(179, 157, 219, 0.4) !important;
+  }
+
+  &.interview {
+    background-color: rgba(255, 183, 77, 0.2) !important;
+    color: var(--accent-light) !important;
+    border: 1px solid rgba(255, 183, 77, 0.4) !important;
+  }
+
+  &.offer {
+    background-color: rgba(129, 199, 132, 0.2) !important;
+    color: #a5d6a7 !important;
+    border: 1px solid rgba(129, 199, 132, 0.4) !important;
+  }
+
+  &.rejected {
+    background-color: rgba(239, 154, 154, 0.2) !important;
+    color: #ffcdd2 !important;
+    border: 1px solid rgba(239, 154, 154, 0.4) !important;
+  }
+}
+
+// Dark theme specific adjustments
+html.dark-theme {
+  .mat-toolbar {
+    border-bottom: 1px solid var(--border-color) !important;
+  }
+
+  .mat-card {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  .mat-table {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  // Better table header contrast in dark mode
+  .mat-header-cell {
+    background-color: #1e1e1e !important;
+    color: #b39ddb !important;
+  }
+
+  // Dark mode dropdown styling
+  .mat-select-panel {
+    background-color: var(--card-background) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  .mat-option {
+    .mat-icon {
+      color: #b39ddb !important;
+    }
+
+    &:hover .mat-icon {
+      color: #d1c4e9 !important;
+    }
+
+    &.mat-selected {
+      background-color: rgba(179, 157, 219, 0.15) !important;
+
+      .mat-icon {
+        color: #d1c4e9 !important;
+      }
+    }
+  }
+
+  // Improve dark mode chip visibility with better colors
+  .status-chip {
+    &.applied {
+      background-color: rgba(179, 157, 219, 0.25) !important;
+      color: #d1c4e9 !important;
+      border: 1px solid rgba(179, 157, 219, 0.5) !important;
+    }
+
+    &.interview {
+      background-color: rgba(255, 183, 77, 0.25) !important;
+      color: #ffe082 !important;
+      border: 1px solid rgba(255, 183, 77, 0.5) !important;
+    }
+
+    &.offer {
+      background-color: rgba(129, 199, 132, 0.25) !important;
+      color: #c8e6c9 !important;
+      border: 1px solid rgba(129, 199, 132, 0.5) !important;
+    }
+
+    &.rejected {
+      background-color: rgba(239, 154, 154, 0.25) !important;
+      color: #ffcdd2 !important;
+      border: 1px solid rgba(239, 154, 154, 0.5) !important;
+    }
+  }
+}
