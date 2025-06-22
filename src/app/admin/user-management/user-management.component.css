@@ -1,0 +1,461 @@
+/* Following exact patterns from dashboard.component.css and theme system */
+
+.page-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header-card {
+  margin-bottom: 24px;
+  border: 1px solid var(--border-color) !important;
+}
+
+.header-card mat-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.5rem;
+  color: var(--text-primary);
+}
+
+/* Stats Grid - Same Pattern as Admin Dashboard */
+.stats-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  border: 1px solid var(--border-color) !important;
+  transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.stat-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px;
+}
+
+.stat-icon {
+  font-size: 2rem;
+  width: 2rem;
+  height: 2rem;
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-number {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+/* UPDATED Filters Card - Desktop Layout */
+.filters-card {
+  margin-bottom: 24px;
+  border: 1px solid var(--border-color) !important;
+}
+
+.filters-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto;
+  gap: 16px;
+  align-items: end;
+  min-height: 56px; /* Ensure consistent height */
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.search-field {
+  width: 100%;
+}
+
+/* Button Alignment Fix */
+.filter-actions {
+  display: flex;
+  align-items: end;
+  justify-content: center;
+}
+
+.button-wrapper {
+  height: 56px; /* Match mat-form-field height */
+  display: flex;
+  align-items: center;
+  padding-bottom: 1.25em; /* Match mat-form-field bottom spacing */
+}
+
+.clear-button {
+  height: 40px !important;
+  min-height: 40px !important;
+  padding: 0 16px !important;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.clear-button mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+/* Table Card */
+.table-card {
+  border: 1px solid var(--border-color) !important;
+  min-height: 400px;
+}
+
+.table-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-primary);
+}
+
+.table-container {
+  overflow-x: auto;
+  margin-top: 16px;
+}
+
+.users-table {
+  width: 100%;
+}
+
+/* Table Headers - Same Pattern as Dashboard */
+.header-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--primary-color) !important;
+}
+
+/* Table Cells */
+.email-cell {
+  font-weight: 500;
+  color: var(--primary-color) !important;
+}
+
+.table-row {
+  transition: background-color 0.2s ease;
+}
+
+.table-row:hover {
+  background-color: var(--hover-color) !important;
+}
+
+/* Special Row Highlighting */
+.admin-row {
+  background-color: rgba(255, 152, 0, 0.05) !important;
+  border-left: 3px solid var(--accent-color) !important;
+}
+
+.inactive-row {
+  opacity: 0.6;
+  background-color: rgba(158, 158, 158, 0.05) !important;
+}
+
+/* Status and Role Chips - Following Exact Theme Patterns */
+.status-chip {
+  font-weight: 500 !important;
+  border-radius: 16px !important;
+  font-size: 0.75rem;
+  min-height: 24px;
+}
+
+.status-chip.active {
+  background-color: rgba(76, 175, 80, 0.2) !important;
+  color: #4caf50 !important;
+  border: 1px solid rgba(76, 175, 80, 0.4) !important;
+}
+
+.status-chip.inactive {
+  background-color: rgba(158, 158, 158, 0.2) !important;
+  color: #9e9e9e !important;
+  border: 1px solid rgba(158, 158, 158, 0.4) !important;
+}
+
+.role-chip {
+  font-weight: 500 !important;
+  border-radius: 16px !important;
+  font-size: 0.75rem;
+  min-height: 24px;
+}
+
+.role-chip.admin {
+  background-color: rgba(255, 152, 0, 0.2) !important;
+  color: var(--accent-color) !important;
+  border: 1px solid rgba(255, 152, 0, 0.4) !important;
+}
+
+.role-chip.user {
+  background-color: rgba(103, 58, 183, 0.2) !important;
+  color: var(--primary-color) !important;
+  border: 1px solid rgba(103, 58, 183, 0.4) !important;
+}
+
+/* Loading and No Data - Same Patterns */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px;
+  gap: 16px;
+  color: var(--text-primary);
+}
+
+.no-data {
+  text-align: center;
+  padding: 48px;
+  color: var(--text-primary);
+}
+
+.no-data-icon {
+  font-size: 4rem;
+  width: 4rem;
+  height: 4rem;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+/* Dark Theme Adjustments - Following Exact Patterns */
+html.dark-theme {
+  .stat-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .admin-row {
+    background-color: rgba(255, 183, 77, 0.1) !important;
+    border-left: 3px solid #ffb74d !important;
+  }
+
+  .inactive-row {
+    background-color: rgba(158, 158, 158, 0.08) !important;
+  }
+
+  .email-cell {
+    color: #b39ddb !important;
+  }
+
+  /* Dark mode chip adjustments */
+  .status-chip.active {
+    background-color: rgba(76, 175, 80, 0.25) !important;
+    color: #81c784 !important;
+    border: 1px solid rgba(76, 175, 80, 0.5) !important;
+  }
+
+  .status-chip.inactive {
+    background-color: rgba(158, 158, 158, 0.25) !important;
+    color: #bdbdbd !important;
+    border: 1px solid rgba(158, 158, 158, 0.5) !important;
+  }
+
+  .role-chip.admin {
+    background-color: rgba(255, 183, 77, 0.25) !important;
+    color: #ffe082 !important;
+    border: 1px solid rgba(255, 183, 77, 0.5) !important;
+  }
+
+  .role-chip.user {
+    background-color: rgba(179, 157, 219, 0.25) !important;
+    color: #d1c4e9 !important;
+    border: 1px solid rgba(179, 157, 219, 0.5) !important;
+  }
+
+  /* Dark theme button styling */
+  .clear-button {
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+  }
+
+  .clear-button:hover {
+    background-color: var(--hover-color) !important;
+  }
+}
+
+/* UPDATED Responsive Design - Tablet Layout (768px to 959px) */
+@media (min-width: 768px) and (max-width: 959px) {
+  .filters-container {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .search-group {
+    grid-column: 1 / -1; /* Full width for search */
+  }
+
+  .filter-actions {
+    grid-column: 1 / -1; /* Full width for button */
+    justify-content: flex-start;
+  }
+
+  .filter-actions .button-wrapper {
+    width: 100%;
+  }
+
+  .clear-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* UPDATED Responsive Design - Mobile Layout */
+@media (max-width: 768px) {
+  .page-container {
+    padding: 16px;
+  }
+
+  .stats-container {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .filters-container {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .filter-group {
+    width: 100%;
+  }
+
+  .filter-actions {
+    justify-content: stretch;
+    margin-top: 8px;
+  }
+
+  .filter-actions .button-wrapper {
+    width: 100%;
+    padding-bottom: 0;
+    height: auto;
+  }
+
+  .clear-button {
+    width: 100%;
+    height: 44px !important;
+    min-height: 44px !important;
+    justify-content: center;
+  }
+
+  .button-text {
+    display: block;
+  }
+
+  .stat-content {
+    gap: 12px;
+    padding: 4px;
+  }
+
+  .stat-icon {
+    font-size: 1.5rem;
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .users-table {
+    font-size: 0.875rem;
+  }
+
+  .header-cell mat-icon {
+    display: none;
+  }
+
+  /* Hide less important columns on mobile */
+  .mat-column-createdAt,
+  .mat-column-lastLoginAt {
+    display: none;
+  }
+}
+
+@media (max-width: 599px) {
+  .stats-container {
+    gap: 12px;
+  }
+
+  .stat-card {
+    margin-bottom: 0;
+  }
+
+  .filters-card {
+    margin-bottom: 16px;
+  }
+
+  .table-card {
+    margin-bottom: 0;
+  }
+}
+
+/* UPDATED Small screens - stack filter elements */
+@media (max-width: 480px) {
+  .filters-container {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .search-field mat-label {
+    font-size: 0.875rem;
+  }
+
+  .clear-button {
+    height: 40px !important;
+    min-height: 40px !important;
+    font-size: 0.875rem;
+  }
+
+  .clear-button mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Hide button text on very small screens */
+  .button-text {
+    display: none;
+  }
+
+  /* Further simplify table on very small screens */
+  .mat-column-role {
+    display: none;
+  }
+}
+
+/* Additional fixes for better visual alignment */
+.mat-mdc-form-field {
+  width: 100%;
+}
+
+.mat-mdc-select-panel {
+  max-height: 256px;
+}
+
+/* Ensure consistent spacing in filter groups */
+.filter-group .mat-mdc-form-field-wrapper {
+  padding-bottom: 1.25em;
+}
+
+/* Fix for select dropdown icons */
+.mat-option mat-icon {
+  margin-right: 8px;
+  vertical-align: middle;
+}

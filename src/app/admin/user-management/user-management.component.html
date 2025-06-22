@@ -1,1 +1,264 @@
-<p>user-management works!</p>
+<div class="page-container">
+  <!-- User Management Header -->
+  <mat-card class="header-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>people</mat-icon>
+        User Management
+      </mat-card-title>
+      <mat-card-subtitle>
+        Manage user accounts, roles, and permissions
+      </mat-card-subtitle>
+    </mat-card-header>
+  </mat-card>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="loading$ | async" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading user data...</p>
+  </div>
+
+  <!-- User Management Content -->
+  <div *ngIf="!(loading$ | async)">
+    <!-- User Statistics Cards -->
+    <div class="stats-container" *ngIf="stats$ | async as stats">
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon color="primary" class="stat-icon">people</mat-icon>
+            <div class="stat-info">
+              <span class="stat-number">{{ stats.totalUsers }}</span>
+              <span class="stat-label">Total Users</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon style="color: #4caf50;" class="stat-icon">check_circle</mat-icon>
+            <div class="stat-info">
+              <span class="stat-number">{{ stats.activeUsers }}</span>
+              <span class="stat-label">Active Users</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon color="accent" class="stat-icon">admin_panel_settings</mat-icon>
+            <div class="stat-info">
+              <span class="stat-number">{{ stats.adminUsers }}</span>
+              <span class="stat-label">Administrators</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon style="color: #2196f3;" class="stat-icon">person_add</mat-icon>
+            <div class="stat-info">
+              <span class="stat-number">{{ stats.newUsersThisWeek }}</span>
+              <span class="stat-label">New This Week</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Filters and Search -->
+    <!-- Filters and Search -->
+    <mat-card class="filters-card">
+      <mat-card-content>
+        <div class="filters-container">
+          <div class="filter-group search-group">
+            <mat-form-field appearance="outline" class="search-field">
+              <mat-label>Search Users</mat-label>
+              <input matInput
+                     [(ngModel)]="searchQuery"
+                     (ngModelChange)="onSearchChange()"
+                     placeholder="Search by email...">
+              <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+          </div>
+
+          <div class="filter-group status-group">
+            <mat-form-field appearance="outline">
+              <mat-label>Status</mat-label>
+              <mat-select [(value)]="statusFilter" (selectionChange)="onStatusFilterChange()">
+                <mat-option value="all">
+                  <mat-icon>list</mat-icon>
+                  All Status
+                </mat-option>
+                <mat-option value="active">
+                  <mat-icon>check_circle</mat-icon>
+                  Active Only
+                </mat-option>
+                <mat-option value="inactive">
+                  <mat-icon>cancel</mat-icon>
+                  Inactive Only
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="filter-group role-group">
+            <mat-form-field appearance="outline">
+              <mat-label>Role</mat-label>
+              <mat-select [(value)]="roleFilter" (selectionChange)="onRoleFilterChange()">
+                <mat-option value="all">
+                  <mat-icon>group</mat-icon>
+                  All Roles
+                </mat-option>
+                <mat-option value="admin">
+                  <mat-icon>admin_panel_settings</mat-icon>
+                  Admins Only
+                </mat-option>
+                <mat-option value="user">
+                  <mat-icon>person</mat-icon>
+                  Users Only
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="filter-actions">
+            <div class="button-wrapper">
+              <button mat-stroked-button (click)="clearFilters()" class="clear-button">
+                <mat-icon>clear</mat-icon>
+                <span class="button-text">Clear Filters</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Users Table -->
+    <mat-card class="table-card">
+      <mat-card-header>
+        <mat-card-title class="table-title">
+          <mat-icon>table_chart</mat-icon>
+          User Accounts
+        </mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div *ngIf="(filteredUsers$ | async)?.length === 0" class="no-data">
+          <mat-icon class="no-data-icon">person_off</mat-icon>
+          <h3>No Users Found</h3>
+          <p *ngIf="searchQuery || statusFilter !== 'all' || roleFilter !== 'all'">
+            Try adjusting your filters or search criteria.
+          </p>
+          <p *ngIf="!searchQuery && statusFilter === 'all' && roleFilter === 'all'">
+            No users have been registered yet.
+          </p>
+        </div>
+
+        <div *ngIf="(filteredUsers$ | async) as filteredUsers" class="table-container">
+          <mat-table [dataSource]="filteredUsers" class="users-table">
+            <!-- Email Column -->
+            <ng-container matColumnDef="email">
+              <mat-header-cell *matHeaderCellDef class="header-cell">
+                <mat-icon>email</mat-icon>
+                Email Address
+              </mat-header-cell>
+              <mat-cell *matCellDef="let user" class="email-cell">
+                {{ user.email }}
+              </mat-cell>
+            </ng-container>
+
+            <!-- Status Column -->
+            <ng-container matColumnDef="status">
+              <mat-header-cell *matHeaderCellDef class="header-cell">
+                <mat-icon>flag</mat-icon>
+                Status
+              </mat-header-cell>
+              <mat-cell *matCellDef="let user">
+                <mat-chip
+                  [color]="getStatusColor(user.isActive)"
+                  [class]="'status-chip ' + getStatusClass(user.isActive)">
+                  {{ user.isActive ? 'Active' : 'Inactive' }}
+                </mat-chip>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Role Column -->
+            <ng-container matColumnDef="role">
+              <mat-header-cell *matHeaderCellDef class="header-cell">
+                <mat-icon>security</mat-icon>
+                Role
+              </mat-header-cell>
+              <mat-cell *matCellDef="let user">
+                <mat-chip
+                  [color]="getRoleColor(user.isAdmin)"
+                  [class]="'role-chip ' + getRoleClass(user.isAdmin)">
+                  {{ user.isAdmin ? 'Administrator' : 'User' }}
+                </mat-chip>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Created Date Column -->
+            <ng-container matColumnDef="createdAt">
+              <mat-header-cell *matHeaderCellDef class="header-cell">
+                <mat-icon>date_range</mat-icon>
+                Created
+              </mat-header-cell>
+              <mat-cell *matCellDef="let user">
+                {{ formatDate(user.createdAt) }}
+              </mat-cell>
+            </ng-container>
+
+            <!-- Last Login Column -->
+            <ng-container matColumnDef="lastLoginAt">
+              <mat-header-cell *matHeaderCellDef class="header-cell">
+                <mat-icon>login</mat-icon>
+                Last Login
+              </mat-header-cell>
+              <mat-cell *matCellDef="let user">
+                {{ formatDate(user.lastLoginAt) }}
+              </mat-cell>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <mat-header-cell *matHeaderCellDef class="header-cell">Actions</mat-header-cell>
+              <mat-cell *matCellDef="let user">
+                <button mat-icon-button [matMenuTriggerFor]="userMenu">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+
+                <mat-menu #userMenu="matMenu">
+                  <!-- Toggle Active Status -->
+                  <button mat-menu-item (click)="toggleUserStatus(user)">
+                    <mat-icon>{{ user.isActive ? 'person_off' : 'person' }}</mat-icon>
+                    <span>{{ user.isActive ? 'Deactivate' : 'Activate' }} User</span>
+                  </button>
+
+                  <mat-divider></mat-divider>
+
+                  <!-- Toggle Admin Status -->
+                  <button mat-menu-item (click)="toggleAdminStatus(user)">
+                    <mat-icon>{{ user.isAdmin ? 'remove_moderator' : 'admin_panel_settings' }}</mat-icon>
+                    <span>{{ user.isAdmin ? 'Remove Admin' : 'Make Admin' }}</span>
+                  </button>
+                </mat-menu>
+              </mat-cell>
+            </ng-container>
+
+            <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+            <mat-row *matRowDef="let row; columns: displayedColumns;"
+                     class="table-row"
+                     [class.admin-row]="row.isAdmin"
+                     [class.inactive-row]="!row.isActive"></mat-row>
+          </mat-table>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

@@ -68,20 +68,26 @@ export class RegisterComponent {
 
       try {
         const { email, password } = this.registerForm.value;
+        console.log('🔄 Starting registration for:', email);
 
         // Step 1: Create Firebase account
         await this.authService.register(email, password);
-        console.log('Firebase registration successful');
+        console.log('✅ Firebase registration successful for:', email);
 
         // Step 2: Handle user profile (separate try-catch)
         try {
           const userId = this.authService.getCurrentUserId();
+          console.log('👤 Retrieved user ID:', userId);
+
           if (userId) {
+            console.log('📝 Creating user profile...');
             await this.adminService.createOrUpdateUserProfile(userId, email, true);
-            console.log('User profile created successfully');
+            console.log('✅ User profile created successfully for:', userId);
+          } else {
+            console.warn('⚠️ No user ID found after registration');
           }
         } catch (profileError) {
-          console.warn('User profile creation failed, but registration was successful:', profileError);
+          console.warn('⚠️ User profile creation failed, but registration was successful:', profileError);
           // Don't throw this error - registration was successful
         }
 
@@ -91,12 +97,13 @@ export class RegisterComponent {
           panelClass: ['success-snackbar']
         });
 
+        console.log('🎉 Registration complete, redirecting to dashboard');
         setTimeout(() => {
           this.router.navigate(['/dashboard']);
         }, 2000);
 
       } catch (error: any) {
-        console.error('Registration failed:', error);
+        console.error('❌ Registration failed:', error);
         this.snackBar.open(this.getErrorMessage(error.code), 'Close', {
           duration: 5000,
           panelClass: ['error-snackbar']

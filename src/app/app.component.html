@@ -17,14 +17,13 @@
         Dashboard
       </button>
 
-
-      <!-- Admin button - only show for admins -->
-<!--      <button mat-button-->
-<!--              *ngIf="adminService.isCurrentUserAdmin() | async"-->
-<!--              (click)="navigateToAdmin()">-->
-<!--        <mat-icon>admin_panel_settings</mat-icon>-->
-<!--        Admin-->
-<!--      </button>-->
+      <!-- Admin button - using local observable to prevent loops -->
+      <button mat-button
+              *ngIf="isAdmin$ | async"
+              (click)="navigateToAdmin()">
+        <mat-icon>admin_panel_settings</mat-icon>
+        Admin
+      </button>
 
       <!-- User menu -->
       <button mat-icon-button [matMenuTriggerFor]="userMenu">

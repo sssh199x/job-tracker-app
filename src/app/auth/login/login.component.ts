@@ -66,20 +66,26 @@ export class LoginComponent implements OnInit {
 
       try {
         const { email, password } = this.loginForm.value;
+        console.log('🔄 Starting login for:', email);
 
         // Step 1: Authenticate with Firebase
         await this.authService.login(email, password);
-        console.log('Firebase authentication successful');
+        console.log('✅ Firebase authentication successful for:', email);
 
         // Step 2: Handle user profile (separate try-catch to not affect login success)
         try {
           const userId = this.authService.getCurrentUserId();
+          console.log('👤 Retrieved user ID:', userId);
+
           if (userId) {
+            console.log('📝 Updating user profile...');
             await this.adminService.createOrUpdateUserProfile(userId, email, false);
-            console.log('User profile updated successfully');
+            console.log('✅ User profile updated successfully for:', userId);
+          } else {
+            console.warn('⚠️ No user ID found after login');
           }
         } catch (profileError) {
-          console.warn('User profile update failed, but login was successful:', profileError);
+          console.warn('⚠️ User profile update failed, but login was successful:', profileError);
           // Don't throw this error - login was successful
         }
 
@@ -89,10 +95,11 @@ export class LoginComponent implements OnInit {
           panelClass: ['success-snackbar']
         });
 
+        console.log('🎉 Login complete, redirecting to dashboard');
         this.router.navigate(['/dashboard']);
 
       } catch (error: any) {
-        console.error('Login failed:', error);
+        console.error('❌ Login failed:', error);
         this.snackBar.open(this.getErrorMessage(error.code), 'Close', {
           duration: 5000,
           panelClass: ['error-snackbar']
