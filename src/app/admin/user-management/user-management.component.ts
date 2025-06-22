@@ -71,7 +71,6 @@ export class UserManagementComponent implements OnInit {
   constructor(
     private adminService: AdminService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
   ) {}
 
   ngOnInit() {
@@ -120,12 +119,7 @@ export class UserManagementComponent implements OnInit {
         // Type-safe date conversion
         let userCreatedDate: Date;
 
-        if (user.createdAt instanceof Date) {
-          userCreatedDate = user.createdAt;
-        } else {
-          // Handle any remaining edge cases
-          userCreatedDate = new Date(user.createdAt as any);
-        }
+        userCreatedDate = user.createdAt;
 
         return userCreatedDate >= oneWeekAgo;
       } catch (error) {

@@ -1,11 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+// src/app/dashboard/dashboard.component.ts
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router'; // Add this
+import { RouterModule } from '@angular/router';
 import { JobApplicationService, JobApplication } from '../services/job-application.service';
 import { AuthService } from '../services/auth.service';
 import { ExportService } from '../services/export.service';
-import { Observable, switchMap } from 'rxjs';
-import { map, startWith, tap } from 'rxjs/operators';
+import { LoadingService } from '../services/loading.service';
+import { Observable, switchMap, Subject } from 'rxjs';
+import { map, startWith, tap, takeUntil, finalize, delay } from 'rxjs/operators';
 
 // Material imports
 import { MatCardModule } from '@angular/material/card';
@@ -16,14 +18,14 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatTooltipModule } from '@angular/material/tooltip'; // Add this
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [
     CommonModule,
-    RouterModule, // Add this
+    RouterModule,
     MatCardModule,
     MatTableModule,
     MatButtonModule,
@@ -32,16 +34,18 @@ import { MatTooltipModule } from '@angular/material/tooltip'; // Add this
     MatProgressSpinnerModule,
     MatMenuModule,
     MatDividerModule,
-    MatTooltipModule // Add this
+    MatTooltipModule
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   applications$!: Observable<JobApplication[]>;
   loading$!: Observable<boolean>;
   lastUpdated: Date = new Date();
   currentApplications: JobApplication[] = [];
+
+  private destroy$ = new Subject<void>();
 
   // Define table columns
   displayedColumns: string[] = ['jobTitle', 'company', 'dateApplied', 'location', 'status', 'salary', 'actions'];
@@ -49,14 +53,22 @@ export class DashboardComponent implements OnInit {
   constructor(
     private jobService: JobApplicationService,
     private authService: AuthService,
-    private exportService: ExportService
+    private exportService: ExportService,
+    private loadingService: LoadingService
   ) {}
 
   ngOnInit() {
+    console.log('📊 Dashboard component initializing...');
+
+    // Signal that component is starting to load
+    this.loadingService.setComponentLoading(true);
+
     // Get applications for the current user with real-time updates
     this.applications$ = this.authService.user$.pipe(
+      delay(50), // Small delay to ensure smooth transition from app loading
       switchMap(user => {
         if (user) {
+          console.log('📊 Loading applications for user:', user.uid);
           return this.jobService.getApplicationsByUser(user.uid);
         }
         return [];
@@ -65,18 +77,38 @@ export class DashboardComponent implements OnInit {
         // Update timestamp and store data when it changes
         this.lastUpdated = new Date();
         this.currentApplications = applications;
-        console.log('Dashboard updated in real-time:', this.lastUpdated);
-      })
+        console.log('📊 Dashboard data loaded:', applications.length, 'applications');
+
+        // Signal that component loading is complete
+        this.loadingService.setComponentLoading(false);
+      }),
+      finalize(() => {
+        // Ensure loading is turned off even if stream errors
+        console.log('📊 Dashboard data loading finalized');
+        this.loadingService.setComponentLoading(false);
+      }),
+      takeUntil(this.destroy$)
     );
 
-    // Create loading state observable
+    // Create component-level loading state for UI
     this.loading$ = this.applications$.pipe(
       map(() => false),
       startWith(true)
     );
+
+    // Subscribe to applications to trigger the loading
+    this.applications$.subscribe();
+  }
+
+  ngOnDestroy() {
+    console.log('📊 Dashboard component destroying...');
+    this.loadingService.setComponentLoading(false);
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   getStatusClass(status: string): string {
+    console.log(`status-${status}`,status);
     return `status-${status}`;
   }
 
@@ -104,7 +136,7 @@ export class DashboardComponent implements OnInit {
   // Method to refresh data manually
   refresh() {
     this.lastUpdated = new Date();
-    console.log('Manual refresh triggered');
+    console.log('🔄 Manual refresh triggered');
   }
 
   // Export methods

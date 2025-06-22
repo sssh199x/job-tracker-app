@@ -1,3 +1,4 @@
+<!-- src/app/app.component.html -->
 <div class="app-container">
   <!-- Material Toolbar Navigation -->
   <mat-toolbar color="primary" class="app-toolbar">
@@ -59,8 +60,22 @@
     </button>
   </mat-toolbar>
 
-  <!-- Main content area -->
+  <!-- Main content area with coordinated loading -->
   <main class="main-content">
-    <router-outlet></router-outlet>
+    <!-- App-level loading overlay (shows during auth + routing) -->
+    <div *ngIf="appLoading$ | async" class="app-loading-overlay">
+      <div class="app-loading-content">
+        <mat-spinner diameter="60" color="primary"></mat-spinner>
+        <div class="loading-text-container">
+          <h3>Initializing Application</h3>
+          <p>Please wait while we prepare your dashboard...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main content (shows when app loading is complete) -->
+    <div *ngIf="!(appLoading$ | async)" class="content-container">
+      <router-outlet></router-outlet>
+    </div>
   </main>
 </div>

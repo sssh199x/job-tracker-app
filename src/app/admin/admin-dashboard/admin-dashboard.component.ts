@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { JobApplicationService, JobApplicationWithUser } from '../../services/job-application.service';
 import { AdminService, UserProfile } from '../../services/admin.service';
-import { Observable, combineLatest } from 'rxjs';
-import { map, startWith, tap } from 'rxjs/operators';
+import { LoadingService } from '../../services/loading.service';
+import { Observable, combineLatest, Subject } from 'rxjs';
+import { map, startWith, tap, takeUntil, finalize, delay } from 'rxjs/operators';
 
 // Material imports
 import { MatCardModule } from '@angular/material/card';
@@ -16,8 +17,8 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTabsModule } from '@angular/material/tabs';
 import { ExportService } from '../../services/export.service';
-import {MatTooltipModule} from '@angular/material/tooltip';
-import {UserManagementComponent} from '../user-management/user-management.component';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { UserManagementComponent } from '../user-management/user-management.component';
 
 interface AdminStats {
   totalApplications: number;
@@ -46,7 +47,7 @@ interface AdminStats {
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.css'
 })
-export class AdminDashboardComponent implements OnInit {
+export class AdminDashboardComponent implements OnInit, OnDestroy {
   applications$!: Observable<JobApplicationWithUser[]>;
   users$!: Observable<UserProfile[]>;
   loading$!: Observable<boolean>;
@@ -55,41 +56,73 @@ export class AdminDashboardComponent implements OnInit {
   currentApplications: JobApplicationWithUser[] = [];
   currentUsers: UserProfile[] = [];
 
+  private destroy$ = new Subject<void>();
+
   // Define table columns
   displayedColumns: string[] = ['userEmail', 'jobTitle', 'company', 'dateApplied', 'location', 'status', 'salary', 'actions'];
 
   constructor(
     private jobService: JobApplicationService,
     private adminService: AdminService,
-    private exportService: ExportService
+    private exportService: ExportService,
+    private loadingService: LoadingService
   ) {}
 
   ngOnInit() {
-    // Get all applications and users
+    console.log('🔧 Admin dashboard component initializing...');
+
+    // Signal that component is starting to load
+    this.loadingService.setComponentLoading(true);
+
+    // Get all applications and users with small delay for smooth transition
     this.applications$ = this.jobService.getAllApplications().pipe(
+      delay(50), // Small delay to ensure smooth transition from app loading
       tap(applications => {
         this.currentApplications = applications;
-        console.log('Admin: Loaded applications:', applications.length);
-      })
+        console.log('🔧 Admin: Applications loaded:', applications.length);
+      }),
+      takeUntil(this.destroy$)
     );
 
     this.users$ = this.adminService.getAllUsers().pipe(
+      delay(50), // Small delay to ensure smooth transition from app loading
       tap(users => {
         this.currentUsers = users;
-        console.log('Admin: Loaded users:', users.length);
-      })
+        console.log('🔧 Admin: Users loaded:', users.length);
+      }),
+      takeUntil(this.destroy$)
     );
 
-    // Create loading state
+    // Create loading state - signal complete when both data sources are loaded
     this.loading$ = combineLatest([this.applications$, this.users$]).pipe(
+      tap(() => {
+        console.log('🔧 Admin: All data loaded, turning off component loading');
+        // Signal that component loading is complete
+        this.loadingService.setComponentLoading(false);
+      }),
       map(() => false),
-      startWith(true)
+      startWith(true),
+      finalize(() => {
+        // Ensure loading is turned off even if stream errors
+        console.log('🔧 Admin: Data loading finalized');
+        this.loadingService.setComponentLoading(false);
+      })
     );
 
     // Calculate statistics
     this.stats$ = combineLatest([this.applications$, this.users$]).pipe(
       map(([applications, users]) => this.calculateStats(applications, users))
     );
+
+    // Subscribe to loading to trigger the data fetching
+    this.loading$.subscribe();
+  }
+
+  ngOnDestroy() {
+    console.log('🔧 Admin dashboard component destroying...');
+    this.loadingService.setComponentLoading(false);
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private calculateStats(applications: JobApplicationWithUser[], users: UserProfile[]): AdminStats {
