@@ -1,10 +1,16 @@
-/* src/app/app.component.css */
-
 /* Base layout styles */
 .app-container {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative;
+}
+
+.app-content {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 0.3s ease-in-out;
 }
 
 .app-toolbar {
@@ -37,7 +43,6 @@
   flex: 1;
   background-color: var(--surface-color);
   position: relative;
-  overflow: hidden;
 }
 
 .user-info {
@@ -49,10 +54,10 @@
   margin-right: 8px;
 }
 
-/* App-level loading overlay styles */
-.app-loading-overlay {
+/* UPDATED: Full screen loading overlay - covers everything */
+.app-loading-fullscreen {
   position: fixed;
-  top: 64px; /* Below toolbar */
+  top: 0;
   left: 0;
   right: 0;
   bottom: 0;
@@ -60,7 +65,7 @@
   align-items: center;
   justify-content: center;
   background-color: var(--surface-color);
-  z-index: 999;
+  z-index: 9999; /* Higher than toolbar */
   animation: fadeIn 0.3s ease-in-out;
 }
 
@@ -92,12 +97,6 @@
   font-size: 1rem;
   color: var(--text-secondary);
   line-height: 1.5;
-}
-
-.content-container {
-  width: 100%;
-  height: 100%;
-  animation: fadeIn 0.3s ease-in-out;
 }
 
 /* Animations */
@@ -137,10 +136,6 @@
   }
 
   /* Responsive loading styles */
-  .app-loading-overlay {
-    top: 56px; /* Smaller toolbar on mobile */
-  }
-
   .app-loading-content {
     padding: 32px 24px;
     gap: 24px;
@@ -163,8 +158,8 @@ html.dark-theme .app-loading-content {
 }
 
 /* Ensure smooth transitions */
-.app-loading-overlay,
-.content-container {
+.app-loading-fullscreen,
+.app-content {
   transition: opacity 0.3s ease-in-out;
 }
 

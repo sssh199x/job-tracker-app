@@ -1,81 +1,80 @@
-<!-- src/app/app.component.html -->
 <div class="app-container">
-  <!-- Material Toolbar Navigation -->
-  <mat-toolbar color="primary" class="app-toolbar">
-    <span class="app-title">{{ title }}</span>
+  <!-- App-level loading overlay - covers ENTIRE screen -->
+  <div *ngIf="appLoading$ | async" class="app-loading-fullscreen">
+    <div class="app-loading-content">
+      <mat-spinner diameter="60" color="primary"></mat-spinner>
+      <div class="loading-text-container">
+        <h3>Initializing Application</h3>
+        <p>Please wait while we prepare your dashboard...</p>
+      </div>
+    </div>
+  </div>
 
-    <span class="spacer"></span>
+  <!-- App content - only shows when loading is complete -->
+  <div *ngIf="!(appLoading$ | async)" class="app-content">
+    <!-- Material Toolbar Navigation -->
+    <mat-toolbar color="primary" class="app-toolbar">
+      <span class="app-title">{{ title }}</span>
 
-    <!-- Navigation buttons when authenticated -->
-    <div *ngIf="authService.user$ | async as user; else notLoggedIn" class="nav-actions">
-      <button mat-button (click)="navigateToJobForm()">
-        <mat-icon>add</mat-icon>
-        Add Application
-      </button>
+      <span class="spacer"></span>
 
-      <button mat-button (click)="navigateToDashboard()">
-        <mat-icon>dashboard</mat-icon>
-        Dashboard
-      </button>
-
-      <!-- Admin button - using local observable to prevent loops -->
-      <button mat-button
-              *ngIf="isAdmin$ | async"
-              (click)="navigateToAdmin()">
-        <mat-icon>admin_panel_settings</mat-icon>
-        Admin
-      </button>
-
-      <!-- User menu -->
-      <button mat-icon-button [matMenuTriggerFor]="userMenu">
-        <mat-icon>account_circle</mat-icon>
-      </button>
-
-      <mat-menu #userMenu="matMenu">
-        <div class="user-info" mat-menu-item disabled>
-          <mat-icon>person</mat-icon>
-          <span>{{ user.email }}</span>
-        </div>
-        <mat-divider></mat-divider>
-        <button mat-menu-item (click)="logout()">
-          <mat-icon>logout</mat-icon>
-          <span>Logout</span>
+      <!-- Navigation buttons when authenticated -->
+      <div *ngIf="authService.user$ | async as user; else notLoggedIn" class="nav-actions">
+        <button mat-button (click)="navigateToJobForm()">
+          <mat-icon>add</mat-icon>
+          Add Application
         </button>
-      </mat-menu>
-    </div>
 
-    <!-- Login/Register buttons when not authenticated -->
-    <ng-template #notLoggedIn>
-      <div class="auth-actions">
-        <button mat-button routerLink="/login">Login</button>
-        <button mat-stroked-button routerLink="/register">Register</button>
+        <button mat-button (click)="navigateToDashboard()">
+          <mat-icon>dashboard</mat-icon>
+          Dashboard
+        </button>
+
+        <!-- Admin button - using local observable to prevent loops -->
+        <button mat-button
+                *ngIf="isAdmin$ | async"
+                (click)="navigateToAdmin()">
+          <mat-icon>admin_panel_settings</mat-icon>
+          Admin
+        </button>
+
+        <!-- User menu -->
+        <button mat-icon-button [matMenuTriggerFor]="userMenu">
+          <mat-icon>account_circle</mat-icon>
+        </button>
+
+        <mat-menu #userMenu="matMenu">
+          <div class="user-info" mat-menu-item disabled>
+            <mat-icon>person</mat-icon>
+            <span>{{ user.email }}</span>
+          </div>
+          <mat-divider></mat-divider>
+          <button mat-menu-item (click)="logout()">
+            <mat-icon>logout</mat-icon>
+            <span>Logout</span>
+          </button>
+        </mat-menu>
       </div>
-    </ng-template>
 
-    <!-- Theme toggle button -->
-    <button mat-icon-button
-            (click)="toggleTheme()"
-            [title]="(themeService.isDarkTheme$ | async) ? 'Switch to light mode' : 'Switch to dark mode'">
-      <mat-icon>{{ (themeService.isDarkTheme$ | async) ? 'light_mode' : 'dark_mode' }}</mat-icon>
-    </button>
-  </mat-toolbar>
-
-  <!-- Main content area with coordinated loading -->
-  <main class="main-content">
-    <!-- App-level loading overlay (shows during auth + routing) -->
-    <div *ngIf="appLoading$ | async" class="app-loading-overlay">
-      <div class="app-loading-content">
-        <mat-spinner diameter="60" color="primary"></mat-spinner>
-        <div class="loading-text-container">
-          <h3>Initializing Application</h3>
-          <p>Please wait while we prepare your dashboard...</p>
+      <!-- Login/Register buttons when not authenticated -->
+      <ng-template #notLoggedIn>
+        <div class="auth-actions">
+          <button mat-button routerLink="/login">Login</button>
+          <button mat-stroked-button routerLink="/register">Register</button>
         </div>
-      </div>
-    </div>
+      </ng-template>
 
-    <!-- Main content (shows when app loading is complete) -->
-    <div *ngIf="!(appLoading$ | async)" class="content-container">
+      <!-- Theme toggle button -->
+      <button mat-icon-button
+              (click)="toggleTheme()"
+              [title]="(themeService.isDarkTheme$ | async) ? 'Switch to light mode' : 'Switch to dark mode'">
+        <mat-icon>{{ (themeService.isDarkTheme$ | async) ? 'light_mode' : 'dark_mode' }}</mat-icon>
+      </button>
+    </mat-toolbar>
+
+    <!-- Main content area -->
+    <main class="main-content">
       <router-outlet></router-outlet>
-    </div>
-  </main>
+    </main>
+  </div>
 </div>

@@ -1,4 +1,3 @@
-// src/app/app.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { RouterOutlet, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';

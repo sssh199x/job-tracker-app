@@ -1,8 +1,9 @@
 // src/app/services/loading.service.ts
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, combineLatest } from 'rxjs';
-import { map, distinctUntilChanged } from 'rxjs/operators';
+import { map, distinctUntilChanged, switchMap, startWith } from 'rxjs/operators';
 import { AuthService } from './auth.service';
+import { AdminService } from './admin.service';
 import { Router, NavigationEnd, NavigationStart } from '@angular/router';
 
 @Injectable({
@@ -13,40 +14,49 @@ export class LoadingService {
   private authLoadingSubject = new BehaviorSubject<boolean>(true);
   private routeLoadingSubject = new BehaviorSubject<boolean>(false);
   private componentLoadingSubject = new BehaviorSubject<boolean>(false);
+  private adminLoadingSubject = new BehaviorSubject<boolean>(true);
 
   // Public observables
   authLoading$ = this.authLoadingSubject.asObservable();
   routeLoading$ = this.routeLoadingSubject.asObservable();
   componentLoading$ = this.componentLoadingSubject.asObservable();
+  adminLoading$ = this.adminLoadingSubject.asObservable();
 
   // Main loading observable - true if ANY loading is happening
   loading$ = combineLatest([
     this.authLoading$,
     this.routeLoading$,
-    this.componentLoading$
+    this.componentLoading$,
+    this.adminLoading$
   ]).pipe(
-    map(([authLoading, routeLoading, componentLoading]) => {
-      const isLoading = authLoading || routeLoading || componentLoading;
-      console.log('🔄 Loading states:', { authLoading, routeLoading, componentLoading, isLoading });
+    map(([authLoading, routeLoading, componentLoading, adminLoading]) => {
+      const isLoading = authLoading || routeLoading || componentLoading || adminLoading;
+      console.log('🔄 Loading states:', { authLoading, routeLoading, componentLoading, adminLoading, isLoading });
       return isLoading;
     }),
     distinctUntilChanged()
   );
 
-  // App loading (shows until everything is ready)
+  // App loading (shows until auth + admin status is ready)
   appLoading$ = combineLatest([
     this.authLoading$,
-    this.routeLoading$
+    this.routeLoading$,
+    this.adminLoading$
   ]).pipe(
-    map(([authLoading, routeLoading]) => authLoading || routeLoading),
+    map(([authLoading, routeLoading, adminLoading]) => {
+      const appLoading = authLoading || routeLoading || adminLoading;
+      return appLoading;
+    }),
     distinctUntilChanged()
   );
 
   constructor(
     private authService: AuthService,
+    private adminService: AdminService,
     private router: Router
   ) {
     this.initializeAuthLoading();
+    this.initializeAdminLoading();
     this.initializeRouteLoading();
   }
 
@@ -62,6 +72,27 @@ export class LoadingService {
         console.log('🔐 Auth still loading...');
         this.setAuthLoading(true);
       }
+    });
+  }
+
+  private initializeAdminLoading(): void {
+    // Watch auth changes and check admin status
+    this.authService.user$.pipe(
+      switchMap(user => {
+        if (user) {
+          console.log('🛡️ Checking admin status for user:', user.email);
+          this.setAdminLoading(true);
+          return this.adminService.isCurrentUserAdmin();
+        } else {
+          // No user = no admin check needed
+          console.log('🛡️ No user = no admin check needed');
+          this.setAdminLoading(false);
+          return [false];
+        }
+      })
+    ).subscribe(isAdmin => {
+      console.log('🛡️ Admin status resolved:', isAdmin);
+      this.setAdminLoading(false);
     });
   }
 
@@ -96,17 +127,24 @@ export class LoadingService {
     this.componentLoadingSubject.next(loading);
   }
 
+  setAdminLoading(loading: boolean): void {
+    console.log('🛡️ Setting admin loading:', loading);
+    this.adminLoadingSubject.next(loading);
+  }
+
   // Get current loading state
-  getCurrentLoadingState(): { auth: boolean; route: boolean; component: boolean; any: boolean } {
+  getCurrentLoadingState(): { auth: boolean; route: boolean; component: boolean; admin: boolean; any: boolean } {
     const auth = this.authLoadingSubject.value;
     const route = this.routeLoadingSubject.value;
     const component = this.componentLoadingSubject.value;
+    const admin = this.adminLoadingSubject.value;
 
     return {
       auth,
       route,
       component,
-      any: auth || route || component
+      admin,
+      any: auth || route || component || admin
     };
   }
 
@@ -116,5 +154,6 @@ export class LoadingService {
     this.setAuthLoading(false);
     this.setRouteLoading(false);
     this.setComponentLoading(false);
+    this.setAdminLoading(false);
   }
 }
