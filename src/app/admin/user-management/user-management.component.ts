@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+// src/app/admin/user-management/user-management.component.ts - REFACTORED
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AdminService, UserProfile } from '../../services/admin.service';
-import { Observable, combineLatest } from 'rxjs';
-import { map, startWith, tap } from 'rxjs/operators';
+import { StatusService } from '../../core/services/status.service'; // ✅ NEW IMPORT
+import { Observable, combineLatest, BehaviorSubject, Subject } from 'rxjs';
+import { map, startWith, tap, debounceTime, takeUntil } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 
 // Material imports
@@ -52,7 +54,7 @@ interface UserStats {
   templateUrl: './user-management.component.html',
   styleUrl: './user-management.component.css'
 })
-export class UserManagementComponent implements OnInit {
+export class UserManagementComponent implements OnInit, OnDestroy {
   users$!: Observable<UserProfile[]>;
   filteredUsers$!: Observable<UserProfile[]>;
   stats$!: Observable<UserStats>;
@@ -60,7 +62,13 @@ export class UserManagementComponent implements OnInit {
 
   currentUsers: UserProfile[] = [];
 
-  // Filter properties
+  // ✅ NEW: Reactive filter management with BehaviorSubjects
+  private searchQuery$ = new BehaviorSubject<string>('');
+  private statusFilter$ = new BehaviorSubject<string>('all');
+  private roleFilter$ = new BehaviorSubject<string>('all');
+  private destroy$ = new Subject<void>();
+
+  // Filter properties for template binding
   searchQuery: string = '';
   statusFilter: string = 'all'; // 'all', 'active', 'inactive'
   roleFilter: string = 'all'; // 'all', 'admin', 'user'
@@ -71,6 +79,7 @@ export class UserManagementComponent implements OnInit {
   constructor(
     private adminService: AdminService,
     private snackBar: MatSnackBar,
+    public statusService: StatusService // ✅ NEW INJECTION
   ) {}
 
   ngOnInit() {
@@ -81,15 +90,18 @@ export class UserManagementComponent implements OnInit {
       tap(users => {
         this.currentUsers = users;
         console.log('👥 Loaded users:', users.length);
-      })
+      }),
+      takeUntil(this.destroy$)
     );
 
-    // Apply filters to users
+    // ✅ NEW: Proper reactive filter management
     this.filteredUsers$ = combineLatest([
       this.users$,
-      // We'll update filters through method calls
+      this.searchQuery$.pipe(debounceTime(300)), // Debounce search input
+      this.statusFilter$,
+      this.roleFilter$
     ]).pipe(
-      map(([users]) => this.applyFilters(users)),
+      map(([users, search, status, role]) => this.applyFilters(users, search, status, role)),
       startWith([])
     );
 
@@ -105,6 +117,11 @@ export class UserManagementComponent implements OnInit {
     );
   }
 
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   private calculateUserStats(users: UserProfile[]): UserStats {
     const now = new Date();
     const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -118,9 +135,7 @@ export class UserManagementComponent implements OnInit {
       try {
         // Type-safe date conversion
         let userCreatedDate: Date;
-
         userCreatedDate = user.createdAt;
-
         return userCreatedDate >= oneWeekAgo;
       } catch (error) {
         console.error('Error comparing user creation date:', error);
@@ -136,45 +151,45 @@ export class UserManagementComponent implements OnInit {
     };
   }
 
-  private applyFilters(users: UserProfile[]): UserProfile[] {
+  private applyFilters(users: UserProfile[], search: string, status: string, role: string): UserProfile[] {
     return users.filter(user => {
       // Search filter
-      const matchesSearch = !this.searchQuery ||
-        user.email.toLowerCase().includes(this.searchQuery.toLowerCase());
+      const matchesSearch = !search ||
+        user.email.toLowerCase().includes(search.toLowerCase());
 
       // Status filter
-      const matchesStatus = this.statusFilter === 'all' ||
-        (this.statusFilter === 'active' && user.isActive) ||
-        (this.statusFilter === 'inactive' && !user.isActive);
+      const matchesStatus = status === 'all' ||
+        (status === 'active' && user.isActive) ||
+        (status === 'inactive' && !user.isActive);
 
       // Role filter
-      const matchesRole = this.roleFilter === 'all' ||
-        (this.roleFilter === 'admin' && user.isAdmin) ||
-        (this.roleFilter === 'user' && !user.isAdmin);
+      const matchesRole = role === 'all' ||
+        (role === 'admin' && user.isAdmin) ||
+        (role === 'user' && !user.isAdmin);
 
       return matchesSearch && matchesStatus && matchesRole;
     });
   }
 
-  // Update filters and refresh the filtered list
+  // ✅ NEW: Reactive filter methods
   onSearchChange() {
-    this.refreshFilters();
+    this.searchQuery$.next(this.searchQuery);
   }
 
   onStatusFilterChange() {
-    this.refreshFilters();
+    this.statusFilter$.next(this.statusFilter);
   }
 
   onRoleFilterChange() {
-    this.refreshFilters();
+    this.roleFilter$.next(this.roleFilter);
   }
 
-  private refreshFilters() {
-    // Trigger filter update by re-subscribing
-    this.filteredUsers$ = this.users$.pipe(
-      map(users => this.applyFilters(users))
-    );
-  }
+  // ❌ REMOVED: Manual Observable recreation
+  // private refreshFilters() {
+  //   this.filteredUsers$ = this.users$.pipe(
+  //     map(users => this.applyFilters(users))
+  //   );
+  // }
 
   // User action methods
   async toggleUserStatus(user: UserProfile) {
@@ -235,29 +250,27 @@ export class UserManagementComponent implements OnInit {
       tap(users => {
         this.currentUsers = users;
         console.log('👥 Refreshed users:', users.length);
-      })
+      }),
+      takeUntil(this.destroy$)
     );
-
-    // Refresh filtered list
-    this.refreshFilters();
   }
 
-  // Utility methods
-  getStatusClass(isActive: boolean): string {
-    return isActive ? 'active' : 'inactive';
-  }
+  // ❌ REMOVED: These methods are now handled by StatusService
+  // getStatusClass(isActive: boolean): string {
+  //   return isActive ? 'active' : 'inactive';
+  // }
 
-  getStatusColor(isActive: boolean): string {
-    return isActive ? 'primary' : 'warn';
-  }
+  // getStatusColor(isActive: boolean): string {
+  //   return isActive ? 'primary' : 'warn';
+  // }
 
-  getRoleClass(isAdmin: boolean): string {
-    return isAdmin ? 'admin' : 'user';
-  }
+  // getRoleClass(isAdmin: boolean): string {
+  //   return isAdmin ? 'admin' : 'user';
+  // }
 
-  getRoleColor(isAdmin: boolean): string {
-    return isAdmin ? 'accent' : '';
-  }
+  // getRoleColor(isAdmin: boolean): string {
+  //   return isAdmin ? 'accent' : '';
+  // }
 
   formatDate(date: any): string {
     if (!date) return 'Never';
@@ -311,6 +324,10 @@ export class UserManagementComponent implements OnInit {
     this.searchQuery = '';
     this.statusFilter = 'all';
     this.roleFilter = 'all';
-    this.refreshFilters();
+
+    // ✅ NEW: Update reactive streams
+    this.searchQuery$.next('');
+    this.statusFilter$.next('all');
+    this.roleFilter$.next('all');
   }
 }

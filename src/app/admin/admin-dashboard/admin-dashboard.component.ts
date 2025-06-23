@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { JobApplicationService, JobApplicationWithUser } from '../../services/job-application.service';
 import { AdminService, UserProfile } from '../../services/admin.service';
 import { LoadingService } from '../../services/loading.service';
+import { StatusService } from '../../core/services/status.service'; // ✅ NEW IMPORT
 import { Observable, combineLatest, Subject } from 'rxjs';
 import { map, startWith, tap, takeUntil, finalize, delay } from 'rxjs/operators';
 
@@ -56,6 +57,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   currentApplications: JobApplicationWithUser[] = [];
   currentUsers: UserProfile[] = [];
 
+  private userLookupMap = new Map<string, string>();
+
   private destroy$ = new Subject<void>();
 
   // Define table columns
@@ -65,7 +68,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     private jobService: JobApplicationService,
     private adminService: AdminService,
     private exportService: ExportService,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    public statusService: StatusService
   ) {}
 
   ngOnInit() {
@@ -88,6 +92,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       delay(50), // Small delay to ensure smooth transition from app loading
       tap(users => {
         this.currentUsers = users;
+        // Build user lookup map for performance
+        this.buildUserLookupMap(users);
         console.log('🔧 Admin: Users loaded:', users.length);
       }),
       takeUntil(this.destroy$)
@@ -125,6 +131,14 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  private buildUserLookupMap(users: UserProfile[]): void {
+    this.userLookupMap.clear();
+    users.forEach(user => {
+      this.userLookupMap.set(user.uid, user.email);
+    });
+    console.log('🔧 Built user lookup map with', this.userLookupMap.size, 'users');
+  }
+
   private calculateStats(applications: JobApplicationWithUser[], users: UserProfile[]): AdminStats {
     const now = new Date();
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -147,20 +161,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     };
   }
 
-  getStatusClass(status: string): string {
-    return `status-${status}`;
-  }
-
-  getStatusColor(status: string): string {
-    switch(status) {
-      case 'applied': return 'primary';
-      case 'interview': return 'accent';
-      case 'offer': return '';
-      case 'rejected': return 'warn';
-      default: return '';
-    }
-  }
-
   formatDate(date: any): Date {
     if (date?.toDate) {
       return date.toDate();
@@ -169,15 +169,13 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   getUserEmail(userId: string): string {
-    const user = this.currentUsers.find(u => u.uid === userId);
-    return user?.email || 'Unknown User';
+    return this.userLookupMap.get(userId) || 'Unknown User';
   }
 
   trackByAppId(index: number, app: JobApplicationWithUser): string {
     return app.id || index.toString();
   }
 
-  // Export all applications (admin function)
   exportAllAsCSV() {
     const enhancedData = this.currentApplications.map(app => ({
       ...app,

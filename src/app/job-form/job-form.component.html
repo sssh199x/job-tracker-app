@@ -60,6 +60,7 @@
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Status</mat-label>
             <mat-select formControlName="status" required>
+              <!-- ✅ UPDATED: Now uses StatusService.getAllJobStatuses() -->
               <mat-option *ngFor="let status of statusOptions" [value]="status.value">
                 <mat-icon>{{ status.icon }}</mat-icon>
                 <span class="option-text">{{ status.label }}</span>

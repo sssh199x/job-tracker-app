@@ -181,9 +181,9 @@
               </mat-header-cell>
               <mat-cell *matCellDef="let user">
                 <mat-chip
-                  [color]="getStatusColor(user.isActive)"
-                  [class]="'status-chip ' + getStatusClass(user.isActive)">
-                  {{ user.isActive ? 'Active' : 'Inactive' }}
+                  [color]="statusService.getUserStatusColor(user.isActive)"
+                  [class]="'status-chip ' + statusService.getUserStatusClass(user.isActive)">
+                  {{ statusService.getUserStatusLabel(user.isActive) }}
                 </mat-chip>
               </mat-cell>
             </ng-container>
@@ -196,9 +196,9 @@
               </mat-header-cell>
               <mat-cell *matCellDef="let user">
                 <mat-chip
-                  [color]="getRoleColor(user.isAdmin)"
-                  [class]="'role-chip ' + getRoleClass(user.isAdmin)">
-                  {{ user.isAdmin ? 'Administrator' : 'User' }}
+                  [color]="statusService.getRoleColor(user.isAdmin)"
+                  [class]="'role-chip ' + statusService.getRoleClass(user.isAdmin)">
+                  {{ statusService.getRoleLabel(user.isAdmin) }}
                 </mat-chip>
               </mat-cell>
             </ng-container>

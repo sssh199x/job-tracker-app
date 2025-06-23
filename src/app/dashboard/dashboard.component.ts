@@ -19,6 +19,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import {StatusService} from '../core/services/status.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -45,7 +46,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   lastUpdated: Date = new Date();
   currentApplications: JobApplication[] = [];
 
-  // Add refresh loading state
+
   private refreshLoading$ = new BehaviorSubject<boolean>(false);
   private destroy$ = new Subject<void>();
 
@@ -56,7 +57,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private jobService: JobApplicationService,
     private authService: AuthService,
     private exportService: ExportService,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    public statusService: StatusService
   ) {}
 
   ngOnInit() {
@@ -118,19 +120,19 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  getStatusClass(status: string): string {
-    return `status-${status}`;
-  }
-
-  getStatusColor(status: string): string {
-    switch(status) {
-      case 'applied': return 'primary';
-      case 'interview': return 'accent';
-      case 'offer': return '';
-      case 'rejected': return 'warn';
-      default: return '';
-    }
-  }
+  // getStatusClass(status: string): string {
+  //   return `status-${status}`;
+  // }
+  //
+  // getStatusColor(status: string): string {
+  //   switch(status) {
+  //     case 'applied': return 'primary';
+  //     case 'interview': return 'accent';
+  //     case 'offer': return '';
+  //     case 'rejected': return 'warn';
+  //     default: return '';
+  //   }
+  // }
 
   formatDate(date: any): Date {
     if (date?.toDate) {

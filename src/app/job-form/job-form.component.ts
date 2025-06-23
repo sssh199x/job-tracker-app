@@ -1,9 +1,11 @@
-import { Component } from '@angular/core';
+// src/app/job-form/job-form.component.ts - FIXED
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { JobApplicationService } from '../services/job-application.service';
 import { AuthService } from '../services/auth.service';
+import { StatusService, JobStatus } from '../core/services/status.service'; // ✅ IMPORT JobStatus type
 
 // Material imports
 import { MatCardModule } from '@angular/material/card';
@@ -37,23 +39,20 @@ import { MatNativeDateModule } from '@angular/material/core';
   templateUrl: './job-form.component.html',
   styleUrl: './job-form.component.css'
 })
-export class JobFormComponent {
+export class JobFormComponent implements OnInit {
   jobForm: FormGroup;
   isSubmitting = false;
 
-  statusOptions = [
-    { value: 'applied', label: 'Applied', icon: 'send' },
-    { value: 'interview', label: 'Interview', icon: 'event' },
-    { value: 'offer', label: 'Offer', icon: 'celebration' },
-    { value: 'rejected', label: 'Rejected', icon: 'cancel' }
-  ];
+  // ✅ FIXED: Initialize as empty array, populate in ngOnInit
+  statusOptions: { value: JobStatus; label: string; icon: string }[] = [];
 
   constructor(
     private fb: FormBuilder,
     private jobService: JobApplicationService,
     private authService: AuthService,
     private router: Router,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    public statusService: StatusService // ✅ StatusService injection
   ) {
     this.jobForm = this.fb.group({
       jobTitle: ['', [Validators.required, Validators.minLength(2)]],
@@ -65,6 +64,11 @@ export class JobFormComponent {
       status: ['applied', Validators.required],
       notes: ['', [Validators.maxLength(500)]]
     });
+  }
+
+  // ✅ NEW: Initialize status options after component construction
+  ngOnInit() {
+    this.statusOptions = this.statusService.getAllJobStatuses();
   }
 
   async onSubmit() {
@@ -163,6 +167,6 @@ export class JobFormComponent {
   }
 
   async navigateToDashboard() {
-  await this.router.navigate(['/dashboard']);
+    await this.router.navigate(['/dashboard']);
   }
 }

@@ -172,9 +172,9 @@
                     </mat-header-cell>
                     <mat-cell *matCellDef="let app">
                       <mat-chip
-                        [color]="getStatusColor(app.status)"
-                        [class]="'status-chip ' + getStatusClass(app.status)">
-                        {{ app.status | titlecase }}
+                        [color]="statusService.getJobStatusColor(app.status)"
+                        [class]="'status-chip ' + statusService.getJobStatusClass(app.status)">
+                        {{ statusService.getJobStatusLabel(app.status) }}
                       </mat-chip>
                     </mat-cell>
                   </ng-container>
