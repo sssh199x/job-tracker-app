@@ -1,3 +1,5 @@
+/* src/app/app.component.css */
+
 /* Base layout styles */
 .app-container {
   min-height: 100vh;
@@ -13,38 +15,360 @@
   animation: fadeIn 0.3s ease-in-out;
 }
 
-.app-toolbar {
-  position: sticky;
+/* Fixed Navigation Styles */
+.main-nav {
+  position: fixed;
   top: 0;
+  left: 0;
+  width: 100%;
   z-index: 1000;
+  transition: all 0.3s ease-in-out;
+  backdrop-filter: blur(10px);
 }
 
-.app-title {
-  font-size: 1.5rem;
-  font-weight: 500;
+/* Light mode navigation styling */
+:root .main-nav {
+  background: rgba(255, 255, 255, 0.95);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.spacer {
-  flex: 1 1 auto;
+:root .main-nav.scrolled {
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.15);
 }
 
-.nav-actions {
+/* Dark theme navigation */
+html.dark-theme .main-nav {
+  background: rgba(103, 58, 183, 0.1);
+}
+
+html.dark-theme .main-nav.scrolled {
+  background: rgba(103, 58, 183, 0.95);
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Light mode navigation styling */
+:root .main-nav {
+  background: rgba(255, 255, 255, 0.95);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+:root .main-nav.scrolled {
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Dark theme navigation */
+html.dark-theme .main-nav {
+  background: rgba(103, 58, 183, 0.1);
+}
+
+html.dark-theme .main-nav.scrolled {
+  background: rgba(103, 58, 183, 0.95);
+}
+
+.nav-container {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
+  padding: 0 2rem;
+  height: 75px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+}
+
+.logo-text {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  text-decoration: none;
+  background: linear-gradient(135deg, #9c27b0, #ff5722);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.nav-menu {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 0.5rem;
+}
+
+.nav-menu li {
+  display: flex;
+  align-items: center;
+}
+
+.nav-menu button {
+  color: var(--text-primary) !important;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--hover-color);
+  border: 1px solid var(--border-color);
+}
+
+.nav-menu button:hover {
+  background: rgba(103, 58, 183, 0.1);
+  transform: translateY(-2px);
+  border-color: var(--primary-color);
+  color: var(--primary-color) !important;
+}
+
+.nav-menu button.active {
+  background: rgba(255, 255, 255, 0.95) !important;
+  font-weight: 600;
+  border-color: rgba(255, 255, 255, 0.6) !important;
+  color: var(--primary-color) !important;
+}
+
+/* Dark theme navigation buttons */
+html.dark-theme .nav-menu button {
+  color: white !important;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+html.dark-theme .nav-menu button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white !important;
+}
+
+html.dark-theme .nav-menu button.active {
+  background: rgba(103, 58, 183, 0.8) !important;
+  border-color: rgba(103, 58, 183, 0.9) !important;
+  color: white !important;
+}
+
+.user-menu-btn {
+  color: var(--text-primary) !important;
+  background: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 8px !important;
+  min-width: 40px !important;
+  width: 40px !important;
+  height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.user-menu-btn:hover {
+  background: none !important;
+  color: var(--text-primary) !important;
+  transform: none !important;
+}
+
+.user-menu-btn mat-icon {
+  margin: 0 !important;
+}
+
+/* Dark theme user menu button */
+html.dark-theme .user-menu-btn {
+  color: white !important;
+  background: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+html.dark-theme .user-menu-btn:hover {
+  background: none !important;
+  color: white !important;
+  transform: none !important;
 }
 
 .auth-actions {
   display: flex;
   gap: 8px;
+  align-items: center;
 }
 
+.auth-actions button {
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+  background: var(--hover-color) !important;
+}
+
+.auth-actions button:hover {
+  background: rgba(103, 58, 183, 0.1) !important;
+  border-color: var(--primary-color) !important;
+  color: var(--primary-color) !important;
+}
+
+.theme-toggle {
+  color: var(--text-primary) !important;
+  background: var(--hover-color) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.theme-toggle:hover {
+  background: rgba(103, 58, 183, 0.1) !important;
+  border-color: var(--primary-color) !important;
+  color: var(--primary-color) !important;
+}
+
+/* Dark theme auth buttons */
+html.dark-theme .auth-actions button {
+  color: white !important;
+  border-color: white !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+html.dark-theme .auth-actions button:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: white !important;
+}
+
+html.dark-theme .theme-toggle {
+  color: white !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+html.dark-theme .theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: white !important;
+}
+
+/* Hero Header Styles */
+.hero-header {
+  position: relative;
+  height: 600px;
+  overflow: hidden;
+  margin-top: 75px; /* Account for fixed nav */
+}
+
+.headline {
+  position: relative;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Background pattern overlay */
+.headline::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 1;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: white;
+  max-width: 800px;
+  padding: 2rem;
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeInUp 0.8s 0.3s ease-out forwards;
+}
+
+.hero-title {
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin: 0 0 1rem 0;
+  line-height: 1.2;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.hero-subtitle {
+  font-size: 1.3rem;
+  font-weight: 300;
+  margin: 0 0 2rem 0;
+  opacity: 0.9;
+  font-style: italic;
+}
+
+.hero-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.cta-button {
+  padding: 12px 24px !important;
+  font-size: 1.1rem !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3) !important;
+}
+
+.secondary-button {
+  padding: 12px 24px !important;
+  font-size: 1.1rem !important;
+  border: 2px solid white !important;
+  color: white !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.secondary-button:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  transform: translateY(-2px);
+}
+
+/* Main Content */
 .main-content {
   flex: 1;
   background-color: var(--surface-color);
   position: relative;
+  min-height: calc(100vh - 75px);
+  padding-top: 75px; /* Account for fixed nav */
 }
 
+.main-content.with-hero {
+  padding-top: 0; /* Hero section already accounts for nav */
+}
+
+.main-content.no-nav {
+  padding-top: 0; /* No navigation on auth pages */
+}
+
+/* User menu styles */
 .user-info {
   pointer-events: none;
   opacity: 0.7;
@@ -109,6 +433,17 @@
   }
 }
 
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes slideUp {
   from {
     opacity: 0;
@@ -120,19 +455,49 @@
   }
 }
 
-/* Responsive navigation */
-@media (max-width: 600px) {
-  .app-title {
-    font-size: 1.2rem;
+/* Responsive Design */
+@media (max-width: 768px) {
+  .nav-container {
+    padding: 0 1rem;
   }
 
-  .nav-actions button span,
-  .auth-actions button span {
+  .nav-menu {
+    gap: 0.25rem;
+  }
+
+  .nav-menu .nav-text {
     display: none;
   }
 
-  .nav-actions {
-    gap: 4px;
+  .nav-menu button {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.9rem;
+  }
+
+  .hero-header {
+    height: 500px;
+  }
+
+  .hero-title {
+    font-size: 2.5rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1.1rem;
+  }
+
+  .hero-content {
+    padding: 1rem;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .cta-button {
+    width: 100% !important;
+    max-width: 250px !important;
   }
 
   /* Responsive loading styles */
@@ -151,10 +516,28 @@
   }
 }
 
+@media (max-width: 480px) {
+  .logo-text {
+    font-size: 1.4rem;
+  }
+
+  .nav-menu button {
+    padding: 0.3rem 0.4rem;
+  }
+
+  .hero-title {
+    font-size: 2rem;
+  }
+}
+
 /* Dark theme specific enhancements */
 html.dark-theme .app-loading-content {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   background-color: var(--card-background);
+}
+
+html.dark-theme .main-nav.scrolled {
+  background: rgba(66, 66, 66, 0.95);
 }
 
 /* Ensure smooth transitions */

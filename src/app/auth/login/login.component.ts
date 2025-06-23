@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import {Router, RouterLink} from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { AdminService } from '../../services/admin.service';
+import { ThemeService } from '../../services/theme.service';
 
 // Material imports
 import { MatCardModule } from '@angular/material/card';
@@ -13,6 +14,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-login',
@@ -27,6 +29,7 @@ import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
     MatIconModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
+    MatTooltipModule,
     RouterLink
   ],
   templateUrl: './login.component.html',
@@ -43,7 +46,8 @@ export class LoginComponent implements OnInit {
     private authService: AuthService,
     private adminService: AdminService,
     private router: Router,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    public themeService: ThemeService
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -58,6 +62,10 @@ export class LoginComponent implements OnInit {
         this.router.navigate(['/dashboard']);
       }
     });
+  }
+
+  toggleTheme() {
+    this.themeService.toggleTheme();
   }
 
   async onLogin() {

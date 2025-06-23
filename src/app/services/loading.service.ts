@@ -1,10 +1,10 @@
 // src/app/services/loading.service.ts
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, combineLatest } from 'rxjs';
-import { map, distinctUntilChanged, switchMap, startWith } from 'rxjs/operators';
-import { AuthService } from './auth.service';
-import { AdminService } from './admin.service';
-import { Router, NavigationEnd, NavigationStart } from '@angular/router';
+import {Injectable} from '@angular/core';
+import {BehaviorSubject, combineLatest} from 'rxjs';
+import {distinctUntilChanged, map, switchMap} from 'rxjs/operators';
+import {AuthService} from './auth.service';
+import {AdminService} from './admin.service';
+import {NavigationEnd, NavigationStart, Router} from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
@@ -44,8 +44,7 @@ export class LoadingService {
     this.adminLoading$
   ]).pipe(
     map(([authLoading, routeLoading, adminLoading]) => {
-      const appLoading = authLoading || routeLoading || adminLoading;
-      return appLoading;
+      return authLoading || routeLoading || adminLoading;
     }),
     distinctUntilChanged()
   );

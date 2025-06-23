@@ -1,9 +1,10 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
-import { AdminService } from '../../services/admin.service'; // Add this import
+import { AdminService } from '../../services/admin.service';
+import { ThemeService } from '../../services/theme.service';
 
 // Material imports
 import { MatCardModule } from '@angular/material/card';
@@ -13,6 +14,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-register',
@@ -26,7 +28,9 @@ import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatTooltipModule,
+    RouterLink
   ],
   templateUrl: './register.component.html',
   styleUrl: './register.component.css'
@@ -40,9 +44,10 @@ export class RegisterComponent {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private adminService: AdminService, // Add this injection
+    private adminService: AdminService,
     private router: Router,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    public themeService: ThemeService
   ) {
     this.registerForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -60,6 +65,10 @@ export class RegisterComponent {
       return { 'passwordMismatch': true };
     }
     return null;
+  }
+
+  toggleTheme() {
+    this.themeService.toggleTheme();
   }
 
   async onRegister() {
@@ -92,8 +101,8 @@ export class RegisterComponent {
         }
 
         // Show success and redirect
-        this.snackBar.open('Account created successfully! Redirecting to dashboard...', 'Close', {
-          duration: 3000,
+        this.snackBar.open('Account created successfully! Welcome to Job Tracker!', 'Close', {
+          duration: 4000,
           panelClass: ['success-snackbar']
         });
 
@@ -170,5 +179,35 @@ export class RegisterComponent {
   get passwordMismatch() {
     return this.registerForm.errors?.['passwordMismatch'] &&
       this.registerForm.get('confirmPassword')?.touched;
+  }
+
+  // Password strength indicator
+  getPasswordStrength(): string {
+    const password = this.registerForm.get('password')?.value || '';
+    if (password.length === 0) return '';
+    if (password.length < 6) return 'weak';
+    if (password.length < 8) return 'medium';
+
+    // Check for strong password criteria
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    const strengthScore = [hasUpperCase, hasLowerCase, hasNumbers, hasSpecialChar].filter(Boolean).length;
+
+    if (password.length >= 8 && strengthScore >= 3) return 'strong';
+    if (password.length >= 6 && strengthScore >= 2) return 'medium';
+    return 'weak';
+  }
+
+  getPasswordStrengthText(): string {
+    const strength = this.getPasswordStrength();
+    switch (strength) {
+      case 'weak': return 'Weak - Add more characters';
+      case 'medium': return 'Medium - Consider adding symbols';
+      case 'strong': return 'Strong password!';
+      default: return '';
+    }
   }
 }
