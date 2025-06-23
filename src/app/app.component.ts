@@ -42,10 +42,10 @@ export class AppComponent implements OnInit, OnDestroy {
   scrollOffset = 0;
 
   // Control when to show hero section
-  shouldShowHero = true;
+  shouldShowHero = false;
 
-  // Control when to show navigation
-  shouldShowNavigation = true;
+  // Control when to show navigation - default too false to prevent flash
+  shouldShowNavigation = false;
 
   // Use a local observable for admin status to prevent template loops
   isAdmin$: Observable<boolean>;
@@ -70,10 +70,16 @@ export class AppComponent implements OnInit, OnDestroy {
 
     // Get app loading state from loading service
     this.appLoading$ = this.loadingService.appLoading$;
+
+    // Set initial navigation state based on current route if available
+    this.checkAndSetNavigationState();
   }
 
   ngOnInit() {
     console.log('🚀 AppComponent initialized');
+
+    // Double-check navigation state on init
+    this.checkAndSetNavigationState();
 
     // Subscribe to loading state for debugging
     this.appLoading$.pipe(
@@ -111,14 +117,29 @@ export class AppComponent implements OnInit, OnDestroy {
       filter(event => event instanceof NavigationEnd),
       takeUntil(this.destroy$)
     ).subscribe((event: NavigationEnd) => {
-      // Show hero only on dashboard/home routes
-      this.shouldShowHero = event.url === '/dashboard' || event.url === '/' || event.url === '';
-
-      // Hide navigation on auth pages
-      this.shouldShowNavigation = event.url !== '/login' && event.url !== '/register';
-
+      // Update navigation state on route change
+      this.updateNavigationState(event.url);
       console.log('🎯 Route changed to:', event.url, 'Show hero:', this.shouldShowHero, 'Show nav:', this.shouldShowNavigation);
     });
+  }
+
+  private checkAndSetNavigationState() {
+    // Get the current URL - handle both direct navigation and initial load
+    const currentUrl = this.router.url || window.location.pathname;
+    this.updateNavigationState(currentUrl);
+    console.log('🎯 Checking navigation state for:', currentUrl, 'Show nav:', this.shouldShowNavigation);
+  }
+
+  private updateNavigationState(url: string) {
+    // Hide navigation on auth pages
+    this.shouldShowNavigation = !this.isAuthPage(url);
+
+    // Show hero only on dashboard/home routes
+    this.shouldShowHero = url === '/dashboard' || url === '/' || url === '';
+  }
+
+  private isAuthPage(url: string): boolean {
+    return url.includes('/login') || url.includes('/register');
   }
 
   ngOnDestroy() {

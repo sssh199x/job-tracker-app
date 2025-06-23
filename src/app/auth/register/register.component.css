@@ -134,9 +134,93 @@
   line-height: 1.4;
 }
 
+/* 🆕 Social Login Section */
+.social-login-section {
+  margin-bottom: 24px;
+  width: 100%;
+}
+
+.social-login-button {
+  width: 100% !important;
+  height: 56px !important;
+  border: 2px solid var(--divider-color) !important;
+  border-radius: 12px !important;
+  background-color: var(--card-background) !important;
+  color: var(--text-primary) !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  transition: all 0.3s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 12px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+
+.social-login-button:hover:not([disabled]) {
+  border-color: #4285F4 !important;
+  background-color: rgba(66, 133, 244, 0.04) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+}
+
+.social-login-button:disabled {
+  opacity: 0.7 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+
+.social-button-content {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  width: 100% !important;
+  justify-content: center !important;
+}
+
+.social-icon {
+  width: 20px !important;
+  height: 20px !important;
+  flex-shrink: 0 !important;
+}
+
+.social-spinner {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.social-spinner ::ng-deep circle {
+  stroke: #4285F4 !important;
+  stroke-width: 3px !important;
+}
+
+/* 🆕 Auth Divider */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  margin: 24px 0;
+  gap: 16px;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background-color: var(--divider-color);
+}
+
+.divider-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+  padding: 0 8px;
+  background-color: var(--card-background);
+}
+
 /* Form Styles */
 .auth-form {
-  margin-top: 32px;
+  margin-top: 0;
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -184,6 +268,7 @@
   height: 100%;
   transition: all 0.3s ease;
   border-radius: 2px;
+  animation: strengthGrow 0.4s ease-out;
 }
 
 .strength-bar.weak {
@@ -217,6 +302,34 @@
 
 .password-strength.strong .strength-text {
   color: #4caf50;
+}
+
+/* 🆕 Terms and Conditions Section */
+.terms-section {
+  margin: 16px 0 8px 0;
+  padding: 16px;
+  background-color: rgba(255, 152, 0, 0.04);
+  border-radius: 12px;
+  border-left: 4px solid var(--accent-color);
+}
+
+.terms-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  text-align: center;
+}
+
+.terms-link {
+  color: var(--accent-color);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.terms-link:hover {
+  color: var(--primary-color);
+  text-decoration: underline;
 }
 
 /* Primary Button */
@@ -358,6 +471,17 @@
   }
 }
 
+@keyframes strengthGrow {
+  from {
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  to {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+}
+
 .auth-card {
   animation: fadeInUp 0.6s ease-out;
 }
@@ -413,13 +537,32 @@
     font-size: 1.4rem !important;
   }
 
-  .auth-button {
+  .auth-button,
+  .social-login-button {
     height: 52px !important;
     font-size: 15px !important;
   }
 
   .auth-links {
     padding: 16px;
+  }
+
+  .auth-divider {
+    margin: 20px 0;
+    gap: 12px;
+  }
+
+  .social-login-section {
+    margin-bottom: 20px;
+  }
+
+  .terms-section {
+    margin: 12px 0 8px 0;
+    padding: 12px;
+  }
+
+  .terms-text {
+    font-size: 12px;
   }
 }
 
@@ -443,6 +586,14 @@
   .auth-card mat-card-content,
   .auth-card mat-card-header {
     padding: 12px !important;
+  }
+
+  .social-button-content {
+    gap: 10px !important;
+  }
+
+  .divider-text {
+    font-size: 13px;
   }
 }
 
@@ -481,7 +632,8 @@ html.dark-theme {
     background-clip: text;
   }
 
-  .divider span {
+  .divider span,
+  .divider-text {
     background: var(--card-background);
   }
 
@@ -502,6 +654,32 @@ html.dark-theme {
     background-color: #ffb74d !important;
     box-shadow: 0 4px 16px rgba(255, 183, 77, 0.4) !important;
     color: white !important;
+  }
+
+  /* 🆕 Dark theme for social login button */
+  .social-login-button {
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    background-color: var(--card-background) !important;
+    color: var(--text-primary) !important;
+  }
+
+  .social-login-button:hover:not([disabled]) {
+    border-color: #4285F4 !important;
+    background-color: rgba(66, 133, 244, 0.08) !important;
+  }
+
+  /* 🆕 Dark theme for terms section */
+  .terms-section {
+    background-color: rgba(255, 183, 77, 0.08);
+    border-left-color: #ffb74d;
+  }
+
+  .terms-link {
+    color: #ffb74d;
+  }
+
+  .terms-link:hover {
+    color: #ffc107;
   }
 
   /* Better form field styling in dark mode */
@@ -550,23 +728,9 @@ html.dark-theme {
 /* Focus States */
 .auth-button:focus-visible,
 .auth-link-button:focus-visible,
+.social-login-button:focus-visible,
+.terms-link:focus-visible,
 .theme-toggle-fab:focus-visible {
   outline: 2px solid var(--primary-color);
   outline-offset: 2px;
-}
-
-/* Enhanced password strength animation */
-.strength-bar {
-  animation: strengthGrow 0.4s ease-out;
-}
-
-@keyframes strengthGrow {
-  from {
-    transform: scaleX(0);
-    transform-origin: left;
-  }
-  to {
-    transform: scaleX(1);
-    transform-origin: left;
-  }
 }

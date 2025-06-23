@@ -1,5 +1,5 @@
 <!-- src/app/app.component.html -->
-<div class="app-container">
+<div class="app-container" [class.auth-page]="router.url.includes('/login') || router.url.includes('/register')">
   <!-- App-level loading overlay - covers ENTIRE screen -->
   <div *ngIf="appLoading$ | async" class="app-loading-fullscreen">
     <div class="app-loading-content">
@@ -13,8 +13,11 @@
 
   <!-- App content - only shows when loading is complete -->
   <div *ngIf="!(appLoading$ | async)" class="app-content">
-    <!-- Fixed Navigation (hidden on auth pages) -->
-    <nav class="main-nav" [class.scrolled]="isScrolled" *ngIf="shouldShowNavigation">
+    <!-- Fixed Navigation (hidden on auth pages) - EXTRA CHECK ADDED -->
+    <nav class="main-nav"
+         [class.scrolled]="isScrolled"
+         [class.auth-page]="router.url.includes('/login') || router.url.includes('/register')"
+         *ngIf="shouldShowNavigation && !router.url.includes('/login') && !router.url.includes('/register')">
       <div class="nav-container">
         <div class="logo">
           <span class="logo-text">{{ title }}</span>

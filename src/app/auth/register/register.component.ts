@@ -38,6 +38,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 export class RegisterComponent {
   registerForm: FormGroup;
   loading = false;
+  socialLoading = false; // 🆕 Added for Google signup
   hidePassword = true;
   hideConfirmPassword = true;
 
@@ -71,36 +72,81 @@ export class RegisterComponent {
     this.themeService.toggleTheme();
   }
 
+  // 🆕 Google Social Signup
+  async onGoogleSignup() {
+    try {
+      this.socialLoading = true;
+      this.registerForm.markAsUntouched();
+
+      const userCredential = await this.authService.loginWithGoogle();
+      const user = userCredential.user;
+      const userId = user.uid;
+      const email = user.email!;
+
+      // Check if this is a new user or existing user
+      const existingProfile = await this.adminService.getUserProfile(userId).toPromise();
+      const isNewUser = !existingProfile;
+
+      await this.adminService.createOrUpdateUserProfile(userId, email, isNewUser);
+
+      console.log('🎉 Google signup successful!', user);
+
+      const welcomeMessage = isNewUser
+        ? `Welcome to Job Tracker, ${user.displayName || user.email}!`
+        : `Welcome back, ${user.displayName || user.email}!`;
+
+      this.snackBar.open(welcomeMessage, 'Close', {
+        duration: 4000,
+        panelClass: ['success-snackbar']
+      });
+
+      this.router.navigate(['/dashboard']);
+
+    } catch (error: any) {
+      console.error('❌ Google signup failed:', error);
+
+      let errorMessage = 'Google signup failed. Please try again.';
+
+      if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = 'Signup was cancelled. Please try again.';
+      } else if (error.code === 'auth/popup-blocked') {
+        errorMessage = 'Popup was blocked. Please allow popups and try again.';
+      } else if (error.code === 'auth/account-exists-with-different-credential') {
+        errorMessage = 'An account already exists with this email. Please use email/password login.';
+      }
+
+      this.snackBar.open(errorMessage, 'Close', {
+        duration: 5000,
+        panelClass: ['error-snackbar']
+      });
+    } finally {
+      this.socialLoading = false;
+    }
+  }
+
+  // 🆕 Enhanced Email/Password Registration with Smart Error Handling
   async onRegister() {
     if (this.registerForm.valid) {
       this.loading = true;
+      const { email, password } = this.registerForm.value;
 
       try {
-        const { email, password } = this.registerForm.value;
         console.log('🔄 Starting registration for:', email);
 
-        // Step 1: Create Firebase account
-        await this.authService.register(email, password);
+        const userCredential = await this.authService.register(email, password);
         console.log('✅ Firebase registration successful for:', email);
 
-        // Step 2: Handle user profile (separate try-catch)
+        // Handle user profile
         try {
-          const userId = this.authService.getCurrentUserId();
-          console.log('👤 Retrieved user ID:', userId);
-
+          const userId = userCredential.user.uid;
           if (userId) {
-            console.log('📝 Creating user profile...');
             await this.adminService.createOrUpdateUserProfile(userId, email, true);
-            console.log('✅ User profile created successfully for:', userId);
-          } else {
-            console.warn('⚠️ No user ID found after registration');
+            console.log('✅ User profile created successfully');
           }
         } catch (profileError) {
           console.warn('⚠️ User profile creation failed, but registration was successful:', profileError);
-          // Don't throw this error - registration was successful
         }
 
-        // Show success and redirect
         this.snackBar.open('Account created successfully! Welcome to Job Tracker!', 'Close', {
           duration: 4000,
           panelClass: ['success-snackbar']
@@ -113,15 +159,139 @@ export class RegisterComponent {
 
       } catch (error: any) {
         console.error('❌ Registration failed:', error);
-        this.snackBar.open(this.getErrorMessage(error.code), 'Close', {
-          duration: 5000,
-          panelClass: ['error-snackbar']
-        });
+        this.handleRegistrationError(error, email);
       } finally {
         this.loading = false;
       }
     } else {
       this.markFormGroupTouched();
+      this.showValidationErrors();
+    }
+  }
+
+  // 🎯 Smart error handling for registration
+  private handleRegistrationError(error: any, email: string) {
+    const errorCode = error.code;
+    const domain = email.split('@')[1]?.toLowerCase();
+
+    let errorMessage = '';
+
+    // Analyze domain type
+    const domainAnalysis = this.analyzeDomain(domain);
+
+    switch (errorCode) {
+      case 'auth/email-already-in-use':
+        if (domainAnalysis.isGmail) {
+          errorMessage = `📧 "${email}" is already registered. Gmail users often sign up with Google - try the "Sign up with Google" button above.`;
+        } else if (domainAnalysis.isLikelyGoogleWorkspace) {
+          errorMessage = `📧 "${email}" is already registered. ${domainAnalysis.type} emails often use Google Workspace - try the "Sign up with Google" button above.`;
+        } else {
+          errorMessage = `📧 An account with "${email}" already exists. Please sign in instead.`;
+        }
+        break;
+
+      case 'auth/invalid-email':
+        errorMessage = 'Please enter a valid email address.';
+        break;
+
+      case 'auth/weak-password':
+        errorMessage = 'Password is too weak. Please use at least 6 characters with a mix of letters and numbers.';
+        break;
+
+      case 'auth/operation-not-allowed':
+        errorMessage = 'Email/password accounts are not enabled. Please contact support.';
+        break;
+
+      case 'auth/network-request-failed':
+        errorMessage = 'Network error. Please check your internet connection and try again.';
+        break;
+
+      default:
+        console.log('⚠️ Unhandled registration error code:', errorCode);
+        if (domainAnalysis.isGmail || domainAnalysis.isLikelyGoogleWorkspace) {
+          errorMessage = `Registration failed for "${email}". 💡 Tip: Try the "Sign up with Google" button if you prefer.`;
+        } else {
+          errorMessage = `Registration failed: ${errorCode}. Please try again or contact support.`;
+        }
+    }
+
+    const duration = errorMessage.includes('Google') ? 8000 : 5000;
+
+    this.snackBar.open(errorMessage, 'Close', {
+      duration,
+      panelClass: ['error-snackbar']
+    });
+  }
+
+  // 🎯 Domain analysis helper
+  private analyzeDomain(domain: string): {
+    type: string;
+    isGmail: boolean;
+    isLikelyGoogleWorkspace: boolean;
+  } {
+    // Gmail domains
+    if (['gmail.com', 'googlemail.com'].includes(domain)) {
+      return {
+        type: 'Gmail',
+        isGmail: true,
+        isLikelyGoogleWorkspace: false
+      };
+    }
+
+    // Known corporate domains (add your known Google Workspace domains here)
+    const knownGoogleWorkspaceDomains = [
+      'exosolve.io'
+      // Add more domains you know use Google Workspace
+    ];
+
+    if (knownGoogleWorkspaceDomains.includes(domain)) {
+      return {
+        type: 'corporate',
+        isGmail: false,
+        isLikelyGoogleWorkspace: true
+      };
+    }
+
+    // Generic corporate domain detection
+    const publicDomains = [
+      'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com',
+      'icloud.com', 'protonmail.com', 'tutanota.com'
+    ];
+
+    if (!publicDomains.includes(domain)) {
+      // If it's not a known public domain, it's likely corporate
+      return {
+        type: 'corporate',
+        isGmail: false,
+        isLikelyGoogleWorkspace: true
+      };
+    }
+
+    return {
+      type: 'personal',
+      isGmail: false,
+      isLikelyGoogleWorkspace: false
+    };
+  }
+
+  private showValidationErrors() {
+    const errors = [];
+    const controls = this.registerForm.controls;
+
+    if (controls['email'].invalid) errors.push('Email');
+    if (controls['password'].invalid) errors.push('Password');
+    if (controls['confirmPassword'].invalid) errors.push('Confirm Password');
+    if (this.passwordMismatch) errors.push('Password Confirmation');
+
+    if (errors.length > 0) {
+      this.snackBar.open(
+        `Please fix the following: ${errors.join(', ')}`,
+        'Close',
+        {
+          duration: 4000,
+          panelClass: ['error-snackbar']
+        }
+      );
     }
   }
 
@@ -130,19 +300,6 @@ export class RegisterComponent {
       const control = this.registerForm.get(key);
       control?.markAsTouched();
     });
-  }
-
-  private getErrorMessage(errorCode: string): string {
-    switch (errorCode) {
-      case 'auth/email-already-in-use':
-        return 'An account with this email already exists.';
-      case 'auth/invalid-email':
-        return 'Invalid email address.';
-      case 'auth/weak-password':
-        return 'Password is too weak. Please use at least 6 characters.';
-      default:
-        return 'Registration failed. Please try again.';
-    }
   }
 
   getFieldErrorMessage(fieldName: string): string {

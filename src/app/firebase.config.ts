@@ -1,9 +1,12 @@
-// Your web app's Firebase configuration
-export const firebaseConfig = {
-  apiKey: "AIzaSyBhO6EFCG6MjucqUCIo0vhMF7fOBaUZVqE",
-  authDomain: "job-tracker-app-11056.firebaseapp.com",
-  projectId: "job-tracker-app-11056",
-  storageBucket: "job-tracker-app-11056.firebasestorage.app",
-  messagingSenderId: "185137569661",
-  appId: "1:185137569661:web:6d9f1ab2afaf44f1b23614"
+import { environment } from "../enviroments/enviroment";
+
+// Use environment-based configuration
+export const firebaseConfig = environment.firebase;
+
+// Export additional environment settings for use throughout the app
+export const appConfig = {
+  production: environment.production,
+  enableAnalytics: environment.enableAnalytics,
+  enableLogging: environment.enableLogging,
+  socialLogin: environment.socialLogin
 };
