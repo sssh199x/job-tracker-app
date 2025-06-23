@@ -46,9 +46,13 @@
         {{ lastUpdated | date:'medium' }}
       </span>
 
-      <button mat-icon-button (click)="refresh()"
-              matTooltip="Refresh">
-        <mat-icon>refresh</mat-icon>
+      <!-- Enhanced refresh button with loading state -->
+      <button mat-icon-button
+              (click)="refresh()"
+              [disabled]="(isRefreshing() | async)"
+              [matTooltip]="(isRefreshing() | async) ? 'Refreshing...' : 'Refresh data'">
+        <mat-icon *ngIf="!(isRefreshing() | async)">refresh</mat-icon>
+        <mat-spinner *ngIf="(isRefreshing() | async)" diameter="20"></mat-spinner>
       </button>
 
       <button mat-button
@@ -74,7 +78,8 @@
   <!-- Loading Spinner -->
   <div *ngIf="loading$ | async" class="loading-container">
     <mat-spinner diameter="50"></mat-spinner>
-    <p>Loading applications...</p>
+    <p *ngIf="!(isRefreshing() | async)">Loading applications...</p>
+    <p *ngIf="(isRefreshing() | async)">Refreshing data...</p>
   </div>
 
   <!-- Applications Table -->

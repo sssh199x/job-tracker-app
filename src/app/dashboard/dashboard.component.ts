@@ -1,4 +1,4 @@
-// src/app/dashboard/dashboard.component.ts
+// src/app/dashboard/dashboard.component.ts - Updated with proper refresh functionality
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -6,7 +6,7 @@ import { JobApplicationService, JobApplication } from '../services/job-applicati
 import { AuthService } from '../services/auth.service';
 import { ExportService } from '../services/export.service';
 import { LoadingService } from '../services/loading.service';
-import { Observable, switchMap, Subject } from 'rxjs';
+import { Observable, switchMap, Subject, BehaviorSubject, combineLatest } from 'rxjs';
 import { map, startWith, tap, takeUntil, finalize, delay } from 'rxjs/operators';
 
 // Material imports
@@ -45,6 +45,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   lastUpdated: Date = new Date();
   currentApplications: JobApplication[] = [];
 
+  // Add refresh loading state
+  private refreshLoading$ = new BehaviorSubject<boolean>(false);
   private destroy$ = new Subject<void>();
 
   // Define table columns
@@ -81,19 +83,27 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
         // Signal that component loading is complete
         this.loadingService.setComponentLoading(false);
+        // Also stop refresh loading if it was active
+        this.refreshLoading$.next(false);
       }),
       finalize(() => {
         // Ensure loading is turned off even if stream errors
         console.log('📊 Dashboard data loading finalized');
         this.loadingService.setComponentLoading(false);
+        this.refreshLoading$.next(false);
       }),
       takeUntil(this.destroy$)
     );
 
-    // Create component-level loading state for UI
-    this.loading$ = this.applications$.pipe(
-      map(() => false),
-      startWith(true)
+    // Create combined loading state (initial load OR refresh)
+    this.loading$ = combineLatest([
+      this.applications$.pipe(
+        map(() => false),
+        startWith(true)
+      ),
+      this.refreshLoading$
+    ]).pipe(
+      map(([initialLoading, refreshLoading]) => initialLoading || refreshLoading)
     );
 
     // Subscribe to applications to trigger the loading
@@ -103,12 +113,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     console.log('📊 Dashboard component destroying...');
     this.loadingService.setComponentLoading(false);
+    this.refreshLoading$.next(false);
     this.destroy$.next();
     this.destroy$.complete();
   }
 
   getStatusClass(status: string): string {
-    console.log(`status-${status}`,status);
     return `status-${status}`;
   }
 
@@ -133,10 +143,20 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return app.id || index.toString();
   }
 
-  // Method to refresh data manually
+  // ENHANCED: Proper refresh method that actually refetches data
   refresh() {
+    console.log('🔄 Manual refresh triggered - refetching data from Firestore');
+
+    // Show refresh loading state
+    this.refreshLoading$.next(true);
+
+    // Update timestamp
     this.lastUpdated = new Date();
-    console.log('🔄 Manual refresh triggered');
+
+    // Trigger actual data refresh from service
+    this.jobService.refreshUserApplications();
+
+    // Note: refreshLoading$ will be set to false when data arrives in the tap operator above
   }
 
   // Export methods
@@ -169,5 +189,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
 
     return counts;
+  }
+
+  // Helper method to check if currently refreshing
+  isRefreshing(): Observable<boolean> {
+    return this.refreshLoading$.asObservable();
   }
 }
