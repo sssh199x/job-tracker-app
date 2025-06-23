@@ -1,4 +1,4 @@
-import { environment } from "../enviroments/enviroment";
+import { environment } from "../environments/environment";
 
 // Use environment-based configuration
 export const firebaseConfig = environment.firebase;
