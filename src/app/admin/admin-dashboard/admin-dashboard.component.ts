@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { JobApplicationService, JobApplicationWithUser } from '../../services/job-application.service';
 import { AdminService, UserProfile } from '../../services/admin.service';
 import { LoadingService } from '../../services/loading.service';
-import { StatusService } from '../../core/services/status.service'; // ✅ NEW IMPORT
+import { StatusService } from '../../core/services/status.service';
+import { DateUtilService } from '../../core/services/date-util.service';
 import { Observable, combineLatest, Subject } from 'rxjs';
 import { map, startWith, tap, takeUntil, finalize, delay } from 'rxjs/operators';
 
@@ -69,7 +70,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     private adminService: AdminService,
     private exportService: ExportService,
     private loadingService: LoadingService,
-    public statusService: StatusService
+    public statusService: StatusService,
+    public dateUtil: DateUtilService
   ) {}
 
   ngOnInit() {
@@ -140,17 +142,13 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   private calculateStats(applications: JobApplicationWithUser[], users: UserProfile[]): AdminStats {
-    const now = new Date();
-    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-
     const applicationsByStatus = applications.reduce((acc, app) => {
       acc[app.status] = (acc[app.status] || 0) + 1;
       return acc;
     }, {} as { [key: string]: number });
 
     const recentApplications = applications.filter(app => {
-      const appDate = this.formatDate(app.dateApplied);
-      return appDate >= sevenDaysAgo;
+      return this.dateUtil.isWithinLastDays(app.dateApplied, 7);
     }).length;
 
     return {
@@ -159,13 +157,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       applicationsByStatus,
       recentApplications
     };
-  }
-
-  formatDate(date: any): Date {
-    if (date?.toDate) {
-      return date.toDate();
-    }
-    return new Date(date);
   }
 
   getUserEmail(userId: string): string {
@@ -179,7 +170,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   exportAllAsCSV() {
     const enhancedData = this.currentApplications.map(app => ({
       ...app,
-      userEmail: this.getUserEmail(app.userId)
+      userEmail: this.getUserEmail(app.userId), // O(1) lookup!
+      dateAppliedFormatted: this.dateUtil.formatDateShort(app.dateApplied)
     }));
 
     const filename = `all-job-applications-${new Date().toISOString().split('T')[0]}`;
@@ -189,7 +181,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   exportAllAsJSON() {
     const enhancedData = this.currentApplications.map(app => ({
       ...app,
-      userEmail: this.getUserEmail(app.userId)
+      userEmail: this.getUserEmail(app.userId), // O(1) lookup!
+      dateAppliedFormatted: this.dateUtil.formatDateShort(app.dateApplied)
     }));
 
     const filename = `all-job-applications-${new Date().toISOString().split('T')[0]}`;

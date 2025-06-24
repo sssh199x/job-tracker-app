@@ -1,4 +1,3 @@
-// src/app/dashboard/dashboard.component.ts - Updated with proper refresh functionality
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -6,6 +5,8 @@ import { JobApplicationService, JobApplication } from '../services/job-applicati
 import { AuthService } from '../services/auth.service';
 import { ExportService } from '../services/export.service';
 import { LoadingService } from '../services/loading.service';
+import { StatusService } from '../core/services/status.service';
+import { DateUtilService } from '../core/services/date-util.service';
 import { Observable, switchMap, Subject, BehaviorSubject, combineLatest } from 'rxjs';
 import { map, startWith, tap, takeUntil, finalize, delay } from 'rxjs/operators';
 
@@ -19,7 +20,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import {StatusService} from '../core/services/status.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -46,7 +46,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   lastUpdated: Date = new Date();
   currentApplications: JobApplication[] = [];
 
-
+  // Add refresh loading state
   private refreshLoading$ = new BehaviorSubject<boolean>(false);
   private destroy$ = new Subject<void>();
 
@@ -58,7 +58,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private exportService: ExportService,
     private loadingService: LoadingService,
-    public statusService: StatusService
+    public statusService: StatusService,
+    public dateUtil: DateUtilService
   ) {}
 
   ngOnInit() {
@@ -120,32 +121,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // getStatusClass(status: string): string {
-  //   return `status-${status}`;
-  // }
-  //
-  // getStatusColor(status: string): string {
-  //   switch(status) {
-  //     case 'applied': return 'primary';
-  //     case 'interview': return 'accent';
-  //     case 'offer': return '';
-  //     case 'rejected': return 'warn';
-  //     default: return '';
-  //   }
-  // }
-
-  formatDate(date: any): Date {
-    if (date?.toDate) {
-      return date.toDate();
-    }
-    return new Date(date);
-  }
-
   trackByAppId(index: number, app: JobApplication): string {
     return app.id || index.toString();
   }
 
-  // ENHANCED: Proper refresh method that actually refetches data
   refresh() {
     console.log('🔄 Manual refresh triggered - refetching data from Firestore');
 

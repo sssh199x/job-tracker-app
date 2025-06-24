@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { AdminService } from '../../services/admin.service';
 import { ThemeService } from '../../services/theme.service';
+import { ValidationService } from '../../core/services/validation.service';
 
 // Material imports
 import { MatCardModule } from '@angular/material/card';
@@ -38,7 +39,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 export class RegisterComponent {
   registerForm: FormGroup;
   loading = false;
-  socialLoading = false; // 🆕 Added for Google signup
+  socialLoading = false;
   hidePassword = true;
   hideConfirmPassword = true;
 
@@ -48,24 +49,18 @@ export class RegisterComponent {
     private adminService: AdminService,
     private router: Router,
     private snackBar: MatSnackBar,
-    public themeService: ThemeService
+    public themeService: ThemeService,
+    public validationService: ValidationService
   ) {
     this.registerForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required]]
-    }, { validators: this.passwordMatchValidator });
-  }
-
-  // Custom validator to check if passwords match
-  passwordMatchValidator(control: AbstractControl): { [key: string]: boolean } | null {
-    const password = control.get('password');
-    const confirmPassword = control.get('confirmPassword');
-
-    if (password && confirmPassword && password.value !== confirmPassword.value) {
-      return { 'passwordMismatch': true };
-    }
-    return null;
+    });
+    this.registerForm.get('confirmPassword')?.setValidators([
+      Validators.required,
+      this.validationService.passwordMatchValidator()
+    ]);
   }
 
   toggleTheme() {
@@ -100,7 +95,7 @@ export class RegisterComponent {
         panelClass: ['success-snackbar']
       });
 
-      this.router.navigate(['/dashboard']);
+      await this.router.navigate(['/dashboard']);
 
     } catch (error: any) {
       console.error('❌ Google signup failed:', error);
@@ -124,7 +119,6 @@ export class RegisterComponent {
     }
   }
 
-  // 🆕 Enhanced Email/Password Registration with Smart Error Handling
   async onRegister() {
     if (this.registerForm.valid) {
       this.loading = true;
@@ -164,7 +158,7 @@ export class RegisterComponent {
         this.loading = false;
       }
     } else {
-      this.markFormGroupTouched();
+      this.validationService.markFormGroupTouched(this.registerForm);
       this.showValidationErrors();
     }
   }
@@ -172,12 +166,10 @@ export class RegisterComponent {
   // 🎯 Smart error handling for registration
   private handleRegistrationError(error: any, email: string) {
     const errorCode = error.code;
-    const domain = email.split('@')[1]?.toLowerCase();
 
     let errorMessage = '';
 
-    // Analyze domain type
-    const domainAnalysis = this.analyzeDomain(domain);
+    const domainAnalysis = this.validationService.analyzeDomain(email);
 
     switch (errorCode) {
       case 'auth/email-already-in-use':
@@ -214,7 +206,6 @@ export class RegisterComponent {
           errorMessage = `Registration failed: ${errorCode}. Please try again or contact support.`;
         }
     }
-
     const duration = errorMessage.includes('Google') ? 8000 : 5000;
 
     this.snackBar.open(errorMessage, 'Close', {
@@ -223,65 +214,8 @@ export class RegisterComponent {
     });
   }
 
-  // 🎯 Domain analysis helper
-  private analyzeDomain(domain: string): {
-    type: string;
-    isGmail: boolean;
-    isLikelyGoogleWorkspace: boolean;
-  } {
-    // Gmail domains
-    if (['gmail.com', 'googlemail.com'].includes(domain)) {
-      return {
-        type: 'Gmail',
-        isGmail: true,
-        isLikelyGoogleWorkspace: false
-      };
-    }
-
-    // Known corporate domains (add your known Google Workspace domains here)
-    const knownGoogleWorkspaceDomains = [
-      'exosolve.io'
-      // Add more domains you know use Google Workspace
-    ];
-
-    if (knownGoogleWorkspaceDomains.includes(domain)) {
-      return {
-        type: 'corporate',
-        isGmail: false,
-        isLikelyGoogleWorkspace: true
-      };
-    }
-
-    // Generic corporate domain detection
-    const publicDomains = [
-      'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com',
-      'icloud.com', 'protonmail.com', 'tutanota.com'
-    ];
-
-    if (!publicDomains.includes(domain)) {
-      // If it's not a known public domain, it's likely corporate
-      return {
-        type: 'corporate',
-        isGmail: false,
-        isLikelyGoogleWorkspace: true
-      };
-    }
-
-    return {
-      type: 'personal',
-      isGmail: false,
-      isLikelyGoogleWorkspace: false
-    };
-  }
-
   private showValidationErrors() {
-    const errors = [];
-    const controls = this.registerForm.controls;
-
-    if (controls['email'].invalid) errors.push('Email');
-    if (controls['password'].invalid) errors.push('Password');
-    if (controls['confirmPassword'].invalid) errors.push('Confirm Password');
-    if (this.passwordMismatch) errors.push('Password Confirmation');
+    const errors = this.validationService.getFormErrors(this.registerForm);
 
     if (errors.length > 0) {
       this.snackBar.open(
@@ -294,77 +228,30 @@ export class RegisterComponent {
       );
     }
   }
-
-  private markFormGroupTouched() {
-    Object.keys(this.registerForm.controls).forEach(key => {
-      const control = this.registerForm.get(key);
-      control?.markAsTouched();
-    });
-  }
-
-  getFieldErrorMessage(fieldName: string): string {
-    const control = this.registerForm.get(fieldName);
-
-    if (control?.hasError('required')) {
-      return `${this.getFieldLabel(fieldName)} is required`;
-    }
-    if (control?.hasError('email')) {
-      return 'Please enter a valid email address';
-    }
-    if (control?.hasError('minlength')) {
-      return 'Password must be at least 6 characters';
-    }
-
-    // Check for password mismatch
-    if (fieldName === 'confirmPassword' && this.registerForm.errors?.['passwordMismatch']) {
-      return 'Passwords do not match';
-    }
-
-    return '';
-  }
-
-  private getFieldLabel(fieldName: string): string {
-    const labels: { [key: string]: string } = {
-      email: 'Email',
-      password: 'Password',
-      confirmPassword: 'Confirm Password'
-    };
-    return labels[fieldName] || fieldName;
-  }
-
   // Helper method to check if passwords match for template
   get passwordMismatch() {
-    return this.registerForm.errors?.['passwordMismatch'] &&
-      this.registerForm.get('confirmPassword')?.touched;
+    const confirmPasswordControl = this.registerForm.get('confirmPassword');
+    return confirmPasswordControl?.hasError('passwordMismatch') &&
+      confirmPasswordControl?.touched;
   }
 
-  // Password strength indicator
   getPasswordStrength(): string {
     const password = this.registerForm.get('password')?.value || '';
-    if (password.length === 0) return '';
-    if (password.length < 6) return 'weak';
-    if (password.length < 8) return 'medium';
+    const strength = this.validationService.getPasswordStrength(password);
 
-    // Check for strong password criteria
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasNumbers = /\d/.test(password);
-    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-
-    const strengthScore = [hasUpperCase, hasLowerCase, hasNumbers, hasSpecialChar].filter(Boolean).length;
-
-    if (password.length >= 8 && strengthScore >= 3) return 'strong';
-    if (password.length >= 6 && strengthScore >= 2) return 'medium';
-    return 'weak';
+    // Convert numeric strength to string
+    switch(strength) {
+      case 0: return '';
+      case 1: return 'very-weak';
+      case 2: return 'weak';
+      case 3: return 'fair';
+      case 4: return 'strong';
+      default: return '';
+    }
   }
 
   getPasswordStrengthText(): string {
-    const strength = this.getPasswordStrength();
-    switch (strength) {
-      case 'weak': return 'Weak - Add more characters';
-      case 'medium': return 'Medium - Consider adding symbols';
-      case 'strong': return 'Strong password!';
-      default: return '';
-    }
+    const password = this.registerForm.get('password')?.value || '';
+    return this.validationService.getPasswordStrengthLabel(password);
   }
 }

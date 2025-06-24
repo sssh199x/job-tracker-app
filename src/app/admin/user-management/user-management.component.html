@@ -209,8 +209,8 @@
                 <mat-icon>date_range</mat-icon>
                 Created
               </mat-header-cell>
-              <mat-cell *matCellDef="let user">
-                {{ formatDate(user.createdAt) }}
+              <mat-cell *matCellDef="let user" [matTooltip]="dateUtil.getRelativeTime(user.createdAt)">
+                {{ dateUtil.formatDateShort(user.createdAt) }}
               </mat-cell>
             </ng-container>
 
@@ -220,8 +220,8 @@
                 <mat-icon>login</mat-icon>
                 Last Login
               </mat-header-cell>
-              <mat-cell *matCellDef="let user">
-                {{ formatDate(user.lastLoginAt) }}
+              <mat-cell *matCellDef="let user" [matTooltip]="user.lastLoginAt ? dateUtil.getRelativeTime(user.lastLoginAt) : 'Never logged in'">
+                {{ user.lastLoginAt ? dateUtil.formatDateShort(user.lastLoginAt) : 'Never' }}
               </mat-cell>
             </ng-container>
 

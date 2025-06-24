@@ -2,6 +2,7 @@
 import { Injectable } from '@angular/core';
 import { Firestore, collection, addDoc, collectionData, query, orderBy, where } from '@angular/fire/firestore';
 import { Observable, BehaviorSubject, switchMap } from 'rxjs';
+import {delay} from 'rxjs/operators';
 
 export interface JobApplication {
   id?: string;
@@ -65,7 +66,7 @@ export class JobApplicationService {
           where('userId', '==', userId),
           orderBy('dateApplied', 'desc')
         );
-        return collectionData(q, { idField: 'id' }) as Observable<JobApplication[]>;
+        return (collectionData(q, { idField: 'id' }) as Observable<JobApplication[]>).pipe(delay(1000));
       })
     );
   }

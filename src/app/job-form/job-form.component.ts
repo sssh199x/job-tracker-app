@@ -1,11 +1,11 @@
-// src/app/job-form/job-form.component.ts - FIXED
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { JobApplicationService } from '../services/job-application.service';
 import { AuthService } from '../services/auth.service';
-import { StatusService, JobStatus } from '../core/services/status.service'; // ✅ IMPORT JobStatus type
+import { StatusService, JobStatus } from '../core/services/status.service';
+import { ValidationService } from '../core/services/validation.service';
 
 // Material imports
 import { MatCardModule } from '@angular/material/card';
@@ -43,7 +43,6 @@ export class JobFormComponent implements OnInit {
   jobForm: FormGroup;
   isSubmitting = false;
 
-  // ✅ FIXED: Initialize as empty array, populate in ngOnInit
   statusOptions: { value: JobStatus; label: string; icon: string }[] = [];
 
   constructor(
@@ -52,7 +51,8 @@ export class JobFormComponent implements OnInit {
     private authService: AuthService,
     private router: Router,
     private snackBar: MatSnackBar,
-    public statusService: StatusService // ✅ StatusService injection
+    public statusService: StatusService,
+    public validationService: ValidationService
   ) {
     this.jobForm = this.fb.group({
       jobTitle: ['', [Validators.required, Validators.minLength(2)]],
@@ -60,13 +60,12 @@ export class JobFormComponent implements OnInit {
       dateApplied: ['', Validators.required],
       location: [''],
       salary: ['', [Validators.min(0)]],
-      jobUrl: ['', [Validators.pattern('https?://.+')]],
+      jobUrl: ['', [this.validationService.urlValidator()]],
       status: ['applied', Validators.required],
       notes: ['', [Validators.maxLength(500)]]
     });
   }
 
-  // ✅ NEW: Initialize status options after component construction
   ngOnInit() {
     this.statusOptions = this.statusService.getAllJobStatuses();
   }
@@ -89,15 +88,43 @@ export class JobFormComponent implements OnInit {
       try {
         const userId = this.authService.getCurrentUserId();
 
+        const selectedDate = this.jobForm.value.dateApplied;
+        let finalDate: Date;
+
+        if (selectedDate) {
+          // Convert the selected date to a proper Date object
+          const dateOnly = new Date(selectedDate);
+
+          // Check if the selected date is today
+          const today = new Date();
+          const isToday = dateOnly.toDateString() === today.toDateString();
+
+          if (isToday) {
+            // If today is selected, use the current time for accurate "relative time"
+            finalDate = new Date(); // Current date and time
+            console.log('📅 Using current time for today\'s application');
+          } else {
+            // For past dates, set time to a reasonable hour (9 AM) to avoid "X hours ago" confusion
+            finalDate = new Date(dateOnly);
+            finalDate.setHours(9, 0, 0, 0); // Set to 9:00 AM
+            console.log('📅 Using 9 AM for selected date:', finalDate);
+          }
+        } else {
+          // Fallback: use current date and time
+          finalDate = new Date();
+        }
+
         const formData = {
           ...this.jobForm.value,
-          dateApplied: new Date(this.jobForm.value.dateApplied),
+          dateApplied: finalDate,
           salary: this.jobForm.value.salary ? Number(this.jobForm.value.salary) : 0,
           userId: userId!
         };
 
+        console.log('📝 Submitting application with date:', finalDate);
+
         const docId = await this.jobService.addApplication(formData);
-        console.log('Document written with ID:', docId);
+        console.log('✅ Document written with ID:', docId);
 
         const snackBarRef = this.snackBar.open('Application submitted successfully!', 'View Dashboard', {
           duration: 5000,
@@ -111,7 +138,7 @@ export class JobFormComponent implements OnInit {
         this.jobForm.reset({ status: 'applied' });
 
       } catch (error) {
-        console.error('Error submitting application:', error);
+        console.error('❌ Error submitting application:', error);
         this.snackBar.open('Error submitting application. Please try again.', 'Close', {
           duration: 5000,
           panelClass: ['error-snackbar']
@@ -120,50 +147,8 @@ export class JobFormComponent implements OnInit {
         this.isSubmitting = false;
       }
     } else {
-      this.markFormGroupTouched();
+      this.validationService.markFormGroupTouched(this.jobForm);
     }
-  }
-
-  private markFormGroupTouched() {
-    Object.keys(this.jobForm.controls).forEach(key => {
-      const control = this.jobForm.get(key);
-      control?.markAsTouched();
-    });
-  }
-
-  // Helper methods for form validation
-  getErrorMessage(fieldName: string): string {
-    const control = this.jobForm.get(fieldName);
-    if (control?.hasError('required')) {
-      return `${this.getFieldLabel(fieldName)} is required`;
-    }
-    if (control?.hasError('minlength')) {
-      return `${this.getFieldLabel(fieldName)} must be at least ${control.errors?.['minlength'].requiredLength} characters`;
-    }
-    if (control?.hasError('pattern')) {
-      return 'Please enter a valid URL (starting with http:// or https://)';
-    }
-    if (control?.hasError('min')) {
-      return 'Salary must be a positive number';
-    }
-    if (control?.hasError('maxlength')) {
-      return `Notes must be less than ${control.errors?.['maxlength'].requiredLength} characters`;
-    }
-    return '';
-  }
-
-  private getFieldLabel(fieldName: string): string {
-    const labels: { [key: string]: string } = {
-      jobTitle: 'Job Title',
-      company: 'Company',
-      dateApplied: 'Date Applied',
-      location: 'Location',
-      salary: 'Salary',
-      jobUrl: 'Job URL',
-      status: 'Status',
-      notes: 'Notes'
-    };
-    return labels[fieldName] || fieldName;
   }
 
   async navigateToDashboard() {

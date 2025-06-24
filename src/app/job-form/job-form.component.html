@@ -23,7 +23,7 @@
               required>
             <mat-icon matSuffix>work</mat-icon>
             <mat-error *ngIf="jobForm.get('jobTitle')?.invalid && jobForm.get('jobTitle')?.touched">
-              {{ getErrorMessage('jobTitle') }}
+              {{ validationService.getError(jobForm.get('jobTitle'),'jobTitle') }}
             </mat-error>
           </mat-form-field>
 
@@ -36,7 +36,7 @@
               required>
             <mat-icon matSuffix>business</mat-icon>
             <mat-error *ngIf="jobForm.get('company')?.invalid && jobForm.get('company')?.touched">
-              {{ getErrorMessage('company') }}
+              {{ validationService.getError(jobForm.get('company'),'company') }}
             </mat-error>
           </mat-form-field>
         </div>
@@ -53,14 +53,13 @@
             <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
             <mat-datepicker #picker></mat-datepicker>
             <mat-error *ngIf="jobForm.get('dateApplied')?.invalid && jobForm.get('dateApplied')?.touched">
-              {{ getErrorMessage('dateApplied') }}
+              {{ validationService.getError(jobForm.get('dateApplied'),'dateApplied') }}
             </mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Status</mat-label>
             <mat-select formControlName="status" required>
-              <!-- ✅ UPDATED: Now uses StatusService.getAllJobStatuses() -->
               <mat-option *ngFor="let status of statusOptions" [value]="status.value">
                 <mat-icon>{{ status.icon }}</mat-icon>
                 <span class="option-text">{{ status.label }}</span>
@@ -68,7 +67,7 @@
             </mat-select>
             <mat-icon matSuffix>flag</mat-icon>
             <mat-error *ngIf="jobForm.get('status')?.invalid && jobForm.get('status')?.touched">
-              {{ getErrorMessage('status') }}
+              {{ validationService.getError(jobForm.get('status'),'status') }}
             </mat-error>
           </mat-form-field>
         </div>
@@ -94,7 +93,7 @@
             <span matPrefix class="currency-prefix">$</span>
             <mat-icon matSuffix>attach_money</mat-icon>
             <mat-error *ngIf="jobForm.get('salary')?.invalid && jobForm.get('salary')?.touched">
-              {{ getErrorMessage('salary') }}
+              {{ validationService.getError(jobForm.get('salary'),'salary') }}
             </mat-error>
           </mat-form-field>
         </div>
@@ -109,7 +108,7 @@
               placeholder="https://company.com/jobs/position">
             <mat-icon matSuffix>link</mat-icon>
             <mat-error *ngIf="jobForm.get('jobUrl')?.invalid && jobForm.get('jobUrl')?.touched">
-              {{ getErrorMessage('jobUrl') }}
+              {{ validationService.getError(jobForm.get('jobUrl'),'jobUrl') }}
             </mat-error>
           </mat-form-field>
         </div>
@@ -126,7 +125,7 @@
             <mat-icon matSuffix>notes</mat-icon>
             <mat-hint>{{ (jobForm.get('notes')?.value?.length || 0) }}/500 characters</mat-hint>
             <mat-error *ngIf="jobForm.get('notes')?.invalid && jobForm.get('notes')?.touched">
-              {{ getErrorMessage('notes') }}
+              {{ validationService.getError(jobForm.get('notes'),'notes') }}
             </mat-error>
           </mat-form-field>
         </div>

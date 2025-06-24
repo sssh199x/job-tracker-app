@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { AdminService } from '../../services/admin.service';
 import { ThemeService } from '../../services/theme.service';
+import { ValidationService } from '../../core/services/validation.service';
 
 // Material imports
 import { MatCardModule } from '@angular/material/card';
@@ -38,7 +39,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 export class LoginComponent implements OnInit {
   loginForm: FormGroup;
   loading = false;
-  socialLoading = false; // 🆕 Added for Google login
+  socialLoading = false;
   hidePassword = true;
   checkingAuthState = true;
 
@@ -48,7 +49,8 @@ export class LoginComponent implements OnInit {
     private adminService: AdminService,
     private router: Router,
     private snackBar: MatSnackBar,
-    public themeService: ThemeService
+    public themeService: ThemeService,
+    public validationService: ValidationService
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -150,7 +152,7 @@ export class LoginComponent implements OnInit {
         this.loading = false;
       }
     } else {
-      this.markFormGroupTouched();
+      this.validationService.markFormGroupTouched(this.loginForm);
     }
   }
 
@@ -158,13 +160,12 @@ export class LoginComponent implements OnInit {
   private handleLoginError(error: any, email: string) {
     const errorCode = error.code;
     const domain = email.split('@')[1]?.toLowerCase();
+    // Analyze domain type
+    const domainAnalysis = this.validationService.analyzeDomain(email);
 
     console.log('🔍 Processing error for:', email, 'Domain:', domain, 'Error:', errorCode);
 
     let errorMessage = '';
-
-    // Analyze domain type
-    const domainAnalysis = this.analyzeDomain(domain);
 
     switch (errorCode) {
       case 'auth/invalid-credential':
@@ -227,77 +228,5 @@ export class LoginComponent implements OnInit {
       duration,
       panelClass: ['error-snackbar']
     });
-  }
-
-  // 🎯 Domain analysis helper
-  private analyzeDomain(domain: string): {
-    type: string;
-    isGmail: boolean;
-    isLikelyGoogleWorkspace: boolean;
-  } {
-    // Gmail domains
-    if (['gmail.com', 'googlemail.com'].includes(domain)) {
-      return {
-        type: 'Gmail',
-        isGmail: true,
-        isLikelyGoogleWorkspace: false
-      };
-    }
-
-    // Known corporate domains (add your known Google Workspace domains here)
-    const knownGoogleWorkspaceDomains = [
-      'exosolve.io'
-      // Add more domains you know use Google Workspace
-    ];
-
-    if (knownGoogleWorkspaceDomains.includes(domain)) {
-      return {
-        type: 'corporate',
-        isGmail: false,
-        isLikelyGoogleWorkspace: true
-      };
-    }
-
-    // Generic corporate domain detection
-    const publicDomains = [
-      'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com',
-      'icloud.com', 'protonmail.com', 'tutanota.com'
-    ];
-
-    if (!publicDomains.includes(domain)) {
-      // If it's not a known public domain, it's likely corporate
-      return {
-        type: 'corporate',
-        isGmail: false,
-        isLikelyGoogleWorkspace: true
-      };
-    }
-
-    return {
-      type: 'personal',
-      isGmail: false,
-      isLikelyGoogleWorkspace: false
-    };
-  }
-
-  private markFormGroupTouched() {
-    Object.keys(this.loginForm.controls).forEach(key => {
-      const control = this.loginForm.get(key);
-      control?.markAsTouched();
-    });
-  }
-
-  getFieldErrorMessage(fieldName: string): string {
-    const control = this.loginForm.get(fieldName);
-    if (control?.hasError('required')) {
-      return `${fieldName === 'email' ? 'Email' : 'Password'} is required`;
-    }
-    if (control?.hasError('email')) {
-      return 'Please enter a valid email address';
-    }
-    if (control?.hasError('minlength')) {
-      return 'Password must be at least 6 characters';
-    }
-    return '';
   }
 }

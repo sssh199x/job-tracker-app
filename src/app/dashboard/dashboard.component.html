@@ -125,8 +125,8 @@
               <mat-icon>date_range</mat-icon>
               Date Applied
             </mat-header-cell>
-            <mat-cell *matCellDef="let app">
-              {{ formatDate(app.dateApplied) | date:'short' }}
+            <mat-cell *matCellDef="let app" [matTooltip]="dateUtil.getRelativeTime(app.dateApplied)">
+              {{ dateUtil.formatDateShort(app.dateApplied) }}
             </mat-cell>
           </ng-container>
 

@@ -1,8 +1,8 @@
-// src/app/admin/user-management/user-management.component.ts - REFACTORED
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AdminService, UserProfile } from '../../services/admin.service';
-import { StatusService } from '../../core/services/status.service'; // ✅ NEW IMPORT
+import { StatusService } from '../../core/services/status.service';
+import { DateUtilService } from '../../core/services/date-util.service';
 import { Observable, combineLatest, BehaviorSubject, Subject } from 'rxjs';
 import { map, startWith, tap, debounceTime, takeUntil } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
@@ -21,7 +21,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatDialogModule} from '@angular/material/dialog';
 
 interface UserStats {
   totalUsers: number;
@@ -62,7 +62,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
 
   currentUsers: UserProfile[] = [];
 
-  // ✅ NEW: Reactive filter management with BehaviorSubjects
+  // Reactive filter management with BehaviorSubjects
   private searchQuery$ = new BehaviorSubject<string>('');
   private statusFilter$ = new BehaviorSubject<string>('all');
   private roleFilter$ = new BehaviorSubject<string>('all');
@@ -79,7 +79,8 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   constructor(
     private adminService: AdminService,
     private snackBar: MatSnackBar,
-    public statusService: StatusService // ✅ NEW INJECTION
+    public statusService: StatusService,
+    public dateUtil: DateUtilService,
   ) {}
 
   ngOnInit() {
@@ -94,7 +95,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     );
 
-    // ✅ NEW: Proper reactive filter management
+    // Proper reactive filter management
     this.filteredUsers$ = combineLatest([
       this.users$,
       this.searchQuery$.pipe(debounceTime(300)), // Debounce search input
@@ -123,24 +124,12 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   }
 
   private calculateUserStats(users: UserProfile[]): UserStats {
-    const now = new Date();
-    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-
     const activeUsers = users.filter(user => user.isActive).length;
     const adminUsers = users.filter(user => user.isAdmin).length;
 
     const newUsersThisWeek = users.filter(user => {
       if (!user.createdAt) return false;
-
-      try {
-        // Type-safe date conversion
-        let userCreatedDate: Date;
-        userCreatedDate = user.createdAt;
-        return userCreatedDate >= oneWeekAgo;
-      } catch (error) {
-        console.error('Error comparing user creation date:', error);
-        return false;
-      }
+      return this.dateUtil.isWithinLastDays(user.createdAt, 7);
     }).length;
 
     return {
@@ -171,7 +160,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ✅ NEW: Reactive filter methods
+  // Reactive filter methods
   onSearchChange() {
     this.searchQuery$.next(this.searchQuery);
   }
@@ -183,13 +172,6 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   onRoleFilterChange() {
     this.roleFilter$.next(this.roleFilter);
   }
-
-  // ❌ REMOVED: Manual Observable recreation
-  // private refreshFilters() {
-  //   this.filteredUsers$ = this.users$.pipe(
-  //     map(users => this.applyFilters(users))
-  //   );
-  // }
 
   // User action methods
   async toggleUserStatus(user: UserProfile) {
@@ -255,66 +237,6 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     );
   }
 
-  // ❌ REMOVED: These methods are now handled by StatusService
-  // getStatusClass(isActive: boolean): string {
-  //   return isActive ? 'active' : 'inactive';
-  // }
-
-  // getStatusColor(isActive: boolean): string {
-  //   return isActive ? 'primary' : 'warn';
-  // }
-
-  // getRoleClass(isAdmin: boolean): string {
-  //   return isAdmin ? 'admin' : 'user';
-  // }
-
-  // getRoleColor(isAdmin: boolean): string {
-  //   return isAdmin ? 'accent' : '';
-  // }
-
-  formatDate(date: any): string {
-    if (!date) return 'Never';
-
-    try {
-      let jsDate: Date;
-
-      // Handle different date formats
-      if (date && typeof date.toDate === 'function') {
-        // Firestore Timestamp
-        jsDate = date.toDate();
-      } else if (date instanceof Date) {
-        // Already a Date object
-        jsDate = date;
-      } else if (typeof date === 'string' || typeof date === 'number') {
-        // String or number timestamp
-        jsDate = new Date(date);
-      } else if (date.seconds) {
-        // Firestore Timestamp-like object
-        jsDate = new Date(date.seconds * 1000);
-      } else {
-        // Try to convert whatever it is
-        jsDate = new Date(date);
-      }
-
-      // Validate the date
-      if (isNaN(jsDate.getTime())) {
-        console.warn('Invalid date encountered:', date);
-        return 'Invalid Date';
-      }
-
-      // Format the date nicely
-      return jsDate.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
-
-    } catch (error) {
-      console.error('Date formatting error:', error, 'Original value:', date);
-      return 'Format Error';
-    }
-  }
-
   trackByUserId(index: number, user: UserProfile): string {
     return user.uid;
   }
@@ -325,7 +247,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     this.statusFilter = 'all';
     this.roleFilter = 'all';
 
-    // ✅ NEW: Update reactive streams
+    // Update reactive streams
     this.searchQuery$.next('');
     this.statusFilter$.next('all');
     this.roleFilter$.next('all');
