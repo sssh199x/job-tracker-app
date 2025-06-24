@@ -169,6 +169,55 @@
   font-style: italic;
 }
 
+/* ===== ENHANCED ACTION BUTTONS STYLING ===== */
+.actions-cell {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.action-button {
+  opacity: 0.7;
+  transition: all 0.2s ease;
+}
+
+.action-button:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Edit button - primary color */
+.edit-button {
+  color: var(--primary-color) !important;
+}
+
+.edit-button:hover {
+  background-color: rgba(103, 58, 183, 0.1) !important;
+}
+
+/* More actions button */
+.more-button {
+  color: var(--text-secondary) !important;
+}
+
+.more-button:hover {
+  color: var(--text-primary) !important;
+  background-color: var(--hover-color) !important;
+}
+
+/* Delete action styling in menu */
+.delete-action {
+  color: #f44336 !important;
+}
+
+.delete-action mat-icon {
+  color: #f44336 !important;
+}
+
+.delete-action:hover {
+  background-color: rgba(244, 67, 54, 0.1) !important;
+}
+
 /* Dark theme specific overrides */
 html.dark-theme {
   .stat-item:hover {
@@ -181,6 +230,15 @@ html.dark-theme {
 
   .job-title-cell {
     color: #b39ddb !important;
+  }
+
+  /* Action buttons in dark theme */
+  .edit-button {
+    color: #b39ddb !important;
+  }
+
+  .edit-button:hover {
+    background-color: rgba(179, 157, 219, 0.15) !important;
   }
 
   /* Dark theme status chips - following user-mgmt pattern */
@@ -238,4 +296,33 @@ html.dark-theme {
     min-height: 24px !important;
     padding: 2px 8px !important;
   }
+
+  /* Stack action buttons vertically on mobile */
+  .actions-cell {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .action-button {
+    width: 32px;
+    height: 32px;
+    padding: 4px !important;
+  }
+
+  .action-button mat-icon {
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
+  }
+}
+
+/* Animation for delete confirmation (if you add a dialog later) */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.delete-confirm {
+  animation: shake 0.3s ease-in-out;
 }

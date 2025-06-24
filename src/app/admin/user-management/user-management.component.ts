@@ -3,8 +3,10 @@ import { CommonModule } from '@angular/common';
 import { AdminService, UserProfile } from '../../services/admin.service';
 import { StatusService } from '../../core/services/status.service';
 import { DateUtilService } from '../../core/services/date-util.service';
+import { PermissionService } from '../../services/permission.service';
 import { Observable, combineLatest, BehaviorSubject, Subject } from 'rxjs';
-import { map, startWith, tap, debounceTime, takeUntil } from 'rxjs/operators';
+import { map, startWith, tap, debounceTime, takeUntil, switchMap } from 'rxjs/operators';
+import { firstValueFrom } from 'rxjs';  // ADD THIS - Modern RxJS way
 import { FormsModule } from '@angular/forms';
 
 // Material imports
@@ -62,11 +64,19 @@ export class UserManagementComponent implements OnInit, OnDestroy {
 
   currentUsers: UserProfile[] = [];
 
+  // Permission observables - initialized in constructor
+  canManageUsers$!: Observable<boolean>;
+  canToggleUserStatus$!: Observable<boolean>;
+  canAssignAdminRole$!: Observable<boolean>;
+
   // Reactive filter management with BehaviorSubjects
   private searchQuery$ = new BehaviorSubject<string>('');
   private statusFilter$ = new BehaviorSubject<string>('all');
   private roleFilter$ = new BehaviorSubject<string>('all');
   private destroy$ = new Subject<void>();
+
+  // ADD: Subject to trigger user refresh
+  private refreshTrigger$ = new BehaviorSubject<void>(undefined);
 
   // Filter properties for template binding
   searchQuery: string = '';
@@ -79,15 +89,22 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   constructor(
     private adminService: AdminService,
     private snackBar: MatSnackBar,
+    private permissions: PermissionService,
     public statusService: StatusService,
     public dateUtil: DateUtilService,
-  ) {}
+  ) {
+    // Initialize permission observables in constructor
+    this.canManageUsers$ = this.permissions.canManageUsers$;
+    this.canToggleUserStatus$ = this.permissions.canToggleUserStatus$;
+    this.canAssignAdminRole$ = this.permissions.canAssignAdminRole$;
+  }
 
   ngOnInit() {
     console.log('👥 UserManagement component initialized');
 
-    // Load all users
-    this.users$ = this.adminService.getAllUsers().pipe(
+    // FIXED: Use switchMap with refresh trigger to reload users
+    this.users$ = this.refreshTrigger$.pipe(
+      switchMap(() => this.adminService.getAllUsers()),
       tap(users => {
         this.currentUsers = users;
         console.log('👥 Loaded users:', users.length);
@@ -173,12 +190,24 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     this.roleFilter$.next(this.roleFilter);
   }
 
-  // User action methods
+  // User action methods with permission checks
   async toggleUserStatus(user: UserProfile) {
-    const newStatus = !user.isActive;
-    const action = newStatus ? 'activate' : 'deactivate';
-
     try {
+      // FIXED: Use firstValueFrom instead of toPromise()
+      const hasPermission = await firstValueFrom(this.canToggleUserStatus$);
+
+      if (!hasPermission) {
+        this.snackBar.open(
+          'You do not have permission to change user status',
+          'Close',
+          { duration: 3000 }
+        );
+        return;
+      }
+
+      const newStatus = !user.isActive;
+      const action = newStatus ? 'activate' : 'deactivate';
+
       await this.adminService.toggleUserStatus(user.uid, newStatus);
 
       this.snackBar.open(
@@ -187,13 +216,13 @@ export class UserManagementComponent implements OnInit, OnDestroy {
         { duration: 3000 }
       );
 
-      // Refresh the user list
+      // FIXED: Trigger refresh properly
       this.refreshUserList();
 
     } catch (error) {
-      console.error(`Error ${action}ing user:`, error);
+      console.error('Error toggling user status:', error);
       this.snackBar.open(
-        `Failed to ${action} user. Please try again.`,
+        'Failed to update user status. Please try again.',
         'Close',
         { duration: 5000 }
       );
@@ -201,10 +230,22 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   }
 
   async toggleAdminStatus(user: UserProfile) {
-    const newAdminStatus = !user.isAdmin;
-    const action = newAdminStatus ? 'grant admin access to' : 'remove admin access from';
-
     try {
+      // FIXED: Use firstValueFrom instead of toPromise()
+      const hasPermission = await firstValueFrom(this.canAssignAdminRole$);
+
+      if (!hasPermission) {
+        this.snackBar.open(
+          'You do not have permission to change admin roles',
+          'Close',
+          { duration: 3000 }
+        );
+        return;
+      }
+
+      const newAdminStatus = !user.isAdmin;
+      const action = newAdminStatus ? 'grant admin access to' : 'remove admin access from';
+
       await this.adminService.toggleAdminStatus(user.uid, newAdminStatus);
 
       this.snackBar.open(
@@ -213,13 +254,13 @@ export class UserManagementComponent implements OnInit, OnDestroy {
         { duration: 3000 }
       );
 
-      // Refresh the user list
+      // FIXED: Trigger refresh properly
       this.refreshUserList();
 
     } catch (error) {
       console.error('Error toggling admin status:', error);
       this.snackBar.open(
-        `Failed to update admin status. Please try again.`,
+        'Failed to update admin status. Please try again.',
         'Close',
         { duration: 5000 }
       );
@@ -227,14 +268,9 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   }
 
   private refreshUserList() {
-    // Force refresh of users list
-    this.users$ = this.adminService.getAllUsers().pipe(
-      tap(users => {
-        this.currentUsers = users;
-        console.log('👥 Refreshed users:', users.length);
-      }),
-      takeUntil(this.destroy$)
-    );
+    // FIXED: Trigger refresh by emitting on the subject
+    console.log('👥 Refreshing user list...');
+    this.refreshTrigger$.next();
   }
 
   trackByUserId(index: number, user: UserProfile): string {

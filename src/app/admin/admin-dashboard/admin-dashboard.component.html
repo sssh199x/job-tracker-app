@@ -79,8 +79,10 @@
           <!-- Export Actions -->
           <div class="table-actions">
             <span class="table-title">All User Applications</span>
-            <div class="actions">
-              <button mat-button [matMenuTriggerFor]="exportMenu" [disabled]="currentApplications.length === 0">
+            <div class="actions" *ngIf="canExportData$ | async">
+              <button mat-button
+                      [matMenuTriggerFor]="exportMenu"
+                      [disabled]="currentApplications.length === 0">
                 <mat-icon>download</mat-icon>
                 Export All
               </button>
@@ -96,6 +98,7 @@
                 </button>
               </mat-menu>
             </div>
+
           </div>
 
           <!-- Applications Table -->
@@ -216,7 +219,7 @@
       </mat-tab>
 
       <!-- User Management Tab -->
-      <mat-tab label="User Management">
+      <mat-tab label="User Management" [disabled]="!(canManageUsers$ | async)">
         <div class="tab-content">
           <app-user-management></app-user-management>
         </div>

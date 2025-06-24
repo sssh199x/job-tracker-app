@@ -6,6 +6,7 @@ import { AuthService } from './services/auth.service';
 import { AdminService } from './services/admin.service';
 import { ThemeService } from './services/theme.service';
 import { LoadingService } from './services/loading.service';
+import { PermissionService } from './services/permission.service';  // ADD THIS
 import { Subject, Observable } from 'rxjs';
 import { takeUntil, map, filter } from 'rxjs/operators';
 
@@ -47,8 +48,7 @@ export class AppComponent implements OnInit, OnDestroy {
   // Control when to show navigation - default too false to prevent flash
   shouldShowNavigation = false;
 
-  // Use a local observable for admin status to prevent template loops
-  isAdmin$: Observable<boolean>;
+  // REMOVED: isAdmin$ property - now using permissions service
 
   // Loading observables from loading service
   appLoading$: Observable<boolean>;
@@ -60,13 +60,13 @@ export class AppComponent implements OnInit, OnDestroy {
     public adminService: AdminService,
     public themeService: ThemeService,
     public loadingService: LoadingService,
+    public permissions: PermissionService,  // ADD THIS
     public router: Router,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     console.log('🚀 AppComponent constructor');
 
-    // Initialize admin status observable
-    this.isAdmin$ = this.adminService.isCurrentUserAdmin();
+    // REMOVED: Initialize admin status observable - now handled by permission service
 
     // Get app loading state from loading service
     this.appLoading$ = this.loadingService.appLoading$;
@@ -95,8 +95,8 @@ export class AppComponent implements OnInit, OnDestroy {
       if (user) {
         console.log('👤 User logged in:', user.email);
 
-        // Check admin status when user logs in
-        this.isAdmin$.pipe(
+        // UPDATED: Use permission service for admin check
+        this.permissions.isAdmin$.pipe(
           takeUntil(this.destroy$)
         ).subscribe(isAdmin => {
           console.log('🛡️ Admin status for', user.email, ':', isAdmin);

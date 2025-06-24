@@ -35,5 +35,25 @@ export const routes: Routes = [
     component: AdminDashboardComponent,
     canActivate: [adminGuard]  // Only admins can access
   },
+  // future routes using flexible permission guards
+  // Uncomment when you add these features:
+
+  // {
+  //   path: 'admin/users',
+  //   component: UserManagementComponent,
+  //   canActivate: [userManagementGuard] // Checks canManageUsers$ permission
+  // },
+
+  // {
+  //   path: 'admin/reports',
+  //   component: ReportsComponent,
+  //   canActivate: [permissionGuard('canExportData$')] // Flexible permission check
+  // },
+
+  // {
+  //   path: 'admin/settings',
+  //   component: AdminSettingsComponent,
+  //   canActivate: [permissionGuard('isAdmin$', '/admin')] // Custom redirect path
+  // },
   { path: '**', redirectTo: '/login' }
 ];

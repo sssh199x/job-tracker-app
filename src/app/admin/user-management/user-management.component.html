@@ -72,7 +72,6 @@
     </div>
 
     <!-- Filters and Search -->
-    <!-- Filters and Search -->
     <mat-card class="filters-card">
       <mat-card-content>
         <div class="filters-container">
@@ -229,21 +228,36 @@
             <ng-container matColumnDef="actions">
               <mat-header-cell *matHeaderCellDef class="header-cell">Actions</mat-header-cell>
               <mat-cell *matCellDef="let user">
-                <button mat-icon-button [matMenuTriggerFor]="userMenu">
+                <!-- Only show menu if user has any management permissions -->
+                <button mat-icon-button
+                        [matMenuTriggerFor]="userMenu"
+                        *ngIf="(canToggleUserStatus$ | async) || (canAssignAdminRole$ | async)">
                   <mat-icon>more_vert</mat-icon>
                 </button>
 
+                <!-- Show disabled icon if no permissions -->
+                <mat-icon *ngIf="!((canToggleUserStatus$ | async) || (canAssignAdminRole$ | async))"
+                          class="disabled-icon"
+                          matTooltip="No management permissions">
+                  lock
+                </mat-icon>
+
                 <mat-menu #userMenu="matMenu">
-                  <!-- Toggle Active Status -->
-                  <button mat-menu-item (click)="toggleUserStatus(user)">
+                  <!-- Toggle Active Status - Show only if has permission -->
+                  <button mat-menu-item
+                          (click)="toggleUserStatus(user)"
+                          *ngIf="canToggleUserStatus$ | async">
                     <mat-icon>{{ user.isActive ? 'person_off' : 'person' }}</mat-icon>
                     <span>{{ user.isActive ? 'Deactivate' : 'Activate' }} User</span>
                   </button>
 
-                  <mat-divider></mat-divider>
+                  <!-- Show divider only if both permissions exist -->
+                  <mat-divider *ngIf="(canToggleUserStatus$ | async) && (canAssignAdminRole$ | async)"></mat-divider>
 
-                  <!-- Toggle Admin Status -->
-                  <button mat-menu-item (click)="toggleAdminStatus(user)">
+                  <!-- Toggle Admin Status - Show only if has permission -->
+                  <button mat-menu-item
+                          (click)="toggleAdminStatus(user)"
+                          *ngIf="canAssignAdminRole$ | async">
                     <mat-icon>{{ user.isAdmin ? 'remove_moderator' : 'admin_panel_settings' }}</mat-icon>
                     <span>{{ user.isAdmin ? 'Remove Admin' : 'Make Admin' }}</span>
                   </button>

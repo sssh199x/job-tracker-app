@@ -55,9 +55,10 @@
         <mat-spinner *ngIf="(isRefreshing() | async)" diameter="20"></mat-spinner>
       </button>
 
+      <!-- Export button with permission check -->
       <button mat-button
               [matMenuTriggerFor]="exportMenu"
-              [disabled]="currentApplications.length === 0">
+              [disabled]="currentApplications.length === 0 || !(canExportOwnData$ | async)">
         <mat-icon>download</mat-icon>
         Export
       </button>
@@ -167,17 +168,47 @@
             </mat-cell>
           </ng-container>
 
-          <!-- Actions Column -->
+          <!-- Actions Column - UPDATED WITH EDIT/DELETE -->
           <ng-container matColumnDef="actions">
             <mat-header-cell *matHeaderCellDef class="header-cell">Actions</mat-header-cell>
-            <mat-cell *matCellDef="let app">
+            <mat-cell *matCellDef="let app" class="actions-cell">
+              <!-- View Job Posting -->
               <button *ngIf="app.jobUrl"
                       mat-icon-button
                       (click)="openJobUrl(app.jobUrl)"
                       matTooltip="View Job Posting">
                 <mat-icon>open_in_new</mat-icon>
               </button>
-              <span *ngIf="!app.jobUrl" class="no-link">-</span>
+
+              <!-- More actions menu (three dots) -->
+              <button mat-icon-button
+                      [matMenuTriggerFor]="actionMenu"
+                      matTooltip="More actions">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+
+              <mat-menu #actionMenu="matMenu">
+                <!-- Edit option -->
+                <button mat-menu-item
+                        (click)="editApplication(app)"
+                        *ngIf="canEditOwnApplications$ | async">
+                  <mat-icon>edit</mat-icon>
+                  <span>Edit Application</span>
+                </button>
+
+                <!-- Delete option -->
+                <button mat-menu-item
+                        (click)="deleteApplication(app)"
+                        class="delete-action"
+                        *ngIf="canDeleteOwnApplications$ | async">
+                  <mat-icon>delete</mat-icon>
+                  <span>Delete Application</span>
+                </button>
+              </mat-menu>
+
+              <!-- Show placeholder if no actions available -->
+              <span *ngIf="!app.jobUrl && !(canEditOwnApplications$ | async) && !(canDeleteOwnApplications$ | async)"
+                    class="no-link">-</span>
             </mat-cell>
           </ng-container>
 

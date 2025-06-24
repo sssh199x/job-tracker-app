@@ -31,7 +31,7 @@
           </button></li>
 
           <!-- Admin button -->
-          <li *ngIf="isAdmin$ | async">
+          <li *ngIf="permissions.isAdmin$ | async">
             <button mat-button (click)="navigateToAdmin()" [class.active]="router.url === '/admin'">
               <mat-icon>admin_panel_settings</mat-icon>
               <span class="nav-text">Admin</span>

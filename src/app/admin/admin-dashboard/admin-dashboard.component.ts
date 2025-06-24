@@ -5,8 +5,10 @@ import { AdminService, UserProfile } from '../../services/admin.service';
 import { LoadingService } from '../../services/loading.service';
 import { StatusService } from '../../core/services/status.service';
 import { DateUtilService } from '../../core/services/date-util.service';
+import { PermissionService } from '../../services/permission.service';  // ADD THIS
 import { Observable, combineLatest, Subject } from 'rxjs';
 import { map, startWith, tap, takeUntil, finalize, delay } from 'rxjs/operators';
+import { firstValueFrom } from 'rxjs';  // ADD THIS - Modern RxJS way
 
 // Material imports
 import { MatCardModule } from '@angular/material/card';
@@ -58,6 +60,11 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   currentApplications: JobApplicationWithUser[] = [];
   currentUsers: UserProfile[] = [];
 
+  // Permission observables - initialized after constructor
+  canExportData$!: Observable<boolean>;
+  canViewAllApplications$!: Observable<boolean>;
+  canManageUsers$!: Observable<boolean>;
+
   private userLookupMap = new Map<string, string>();
 
   private destroy$ = new Subject<void>();
@@ -70,9 +77,15 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     private adminService: AdminService,
     private exportService: ExportService,
     private loadingService: LoadingService,
+    private permissions: PermissionService,  // ADD THIS
     public statusService: StatusService,
     public dateUtil: DateUtilService
-  ) {}
+  ) {
+    // Initialize permission observables in constructor
+    this.canExportData$ = this.permissions.canExportData$;
+    this.canViewAllApplications$ = this.permissions.canViewAllApplications$;
+    this.canManageUsers$ = this.permissions.canViewUserManagement$;
+  }
 
   ngOnInit() {
     console.log('🔧 Admin dashboard component initializing...');
@@ -167,26 +180,48 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     return app.id || index.toString();
   }
 
-  exportAllAsCSV() {
-    const enhancedData = this.currentApplications.map(app => ({
-      ...app,
-      userEmail: this.getUserEmail(app.userId), // O(1) lookup!
-      dateAppliedFormatted: this.dateUtil.formatDateShort(app.dateApplied)
-    }));
+  async exportAllAsCSV() {
+    try {
+      // Optional: Double-check permission programmatically
+      const canExport = await firstValueFrom(this.canExportData$);
+      if (!canExport) {
+        console.warn('User does not have export permission');
+        return;
+      }
 
-    const filename = `all-job-applications-${new Date().toISOString().split('T')[0]}`;
-    this.exportService.exportAsCSV(enhancedData, filename);
+      const enhancedData = this.currentApplications.map(app => ({
+        ...app,
+        userEmail: this.getUserEmail(app.userId), // O(1) lookup!
+        dateAppliedFormatted: this.dateUtil.formatDateShort(app.dateApplied)
+      }));
+
+      const filename = `all-job-applications-${new Date().toISOString().split('T')[0]}`;
+      this.exportService.exportAsCSV(enhancedData, filename);
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+    }
   }
 
-  exportAllAsJSON() {
-    const enhancedData = this.currentApplications.map(app => ({
-      ...app,
-      userEmail: this.getUserEmail(app.userId), // O(1) lookup!
-      dateAppliedFormatted: this.dateUtil.formatDateShort(app.dateApplied)
-    }));
+  async exportAllAsJSON() {
+    try {
+      // Optional: Double-check permission programmatically
+      const canExport = await firstValueFrom(this.canExportData$);
+      if (!canExport) {
+        console.warn('User does not have export permission');
+        return;
+      }
 
-    const filename = `all-job-applications-${new Date().toISOString().split('T')[0]}`;
-    this.exportService.exportAsJSON(enhancedData, filename);
+      const enhancedData = this.currentApplications.map(app => ({
+        ...app,
+        userEmail: this.getUserEmail(app.userId), // O(1) lookup!
+        dateAppliedFormatted: this.dateUtil.formatDateShort(app.dateApplied)
+      }));
+
+      const filename = `all-job-applications-${new Date().toISOString().split('T')[0]}`;
+      this.exportService.exportAsJSON(enhancedData, filename);
+    } catch (error) {
+      console.error('Error exporting JSON:', error);
+    }
   }
 
   // Open job URL
