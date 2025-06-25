@@ -190,6 +190,7 @@
               <mat-menu #actionMenu="matMenu">
                 <!-- Edit option -->
                 <button mat-menu-item
+                        class="edit-button"
                         (click)="editApplication(app)"
                         *ngIf="canEditOwnApplications$ | async">
                   <mat-icon>edit</mat-icon>

@@ -194,6 +194,9 @@
 .edit-button:hover {
   background-color: rgba(103, 58, 183, 0.1) !important;
 }
+.edit-button mat-icon{
+  color: var(--primary-color) !important;
+}
 
 /* More actions button */
 .more-button {

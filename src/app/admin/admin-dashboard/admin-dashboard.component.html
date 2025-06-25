@@ -216,6 +216,7 @@
                       <mat-menu #adminActionMenu="matMenu">
                         <!-- 🆕 Edit option for admins -->
                         <button mat-menu-item
+                                class="edit-button"
                                 (click)="editApplication(app)"
                                 *ngIf="canEditApplications$ | async">
                           <mat-icon>edit</mat-icon>

@@ -282,3 +282,39 @@ html.dark-theme {
     padding: 2px 8px !important;
   }
 }
+
+/* Edit button - primary color */
+.edit-button {
+  color: var(--primary-color) !important;
+}
+
+.edit-button mat-icon{
+  color: var(--primary-color) !important;
+}
+
+.edit-button:hover {
+  background-color: rgba(103, 58, 183, 0.1) !important;
+}
+
+/* More actions button */
+.more-button {
+  color: var(--text-secondary) !important;
+}
+
+.more-button:hover {
+  color: var(--text-primary) !important;
+  background-color: var(--hover-color) !important;
+}
+
+/* Delete action styling in menu */
+.delete-action {
+  color: #f44336 !important;
+}
+
+.delete-action mat-icon {
+  color: #f44336 !important;
+}
+
+.delete-action:hover {
+  background-color: rgba(244, 67, 54, 0.1) !important;
+}
