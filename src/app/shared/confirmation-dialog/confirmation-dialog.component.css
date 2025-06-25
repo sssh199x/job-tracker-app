@@ -1,0 +1,121 @@
+.confirmation-dialog {
+  min-width: 420px;
+  max-width: 500px;
+  padding: 0;
+}
+
+.dialog-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 20px 0;
+  padding: 24px 24px 0 24px;
+  color: var(--text-primary);
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.dialog-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+
+  &.warning {
+    color: #ff9800;
+  }
+
+  &.danger {
+    color: #f44336;
+  }
+
+  &.info {
+    color: #2196f3;
+  }
+}
+
+.dialog-content {
+  padding: 0 24px 24px 24px;
+  margin: 0;
+
+  p {
+    margin: 0;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    white-space: pre-line;
+    font-size: 14px;
+  }
+}
+
+.dialog-actions {
+  gap: 12px;
+  padding: 12px 24px 24px 24px;
+  margin: 0;
+  border-top: 1px solid var(--divider-color);
+  background-color: var(--surface-color);
+}
+
+.cancel-button {
+  color: var(--text-secondary);
+  min-width: 120px;
+  height: 40px;
+}
+
+.confirm-button {
+  min-width: 140px;
+  height: 40px;
+  font-weight: 500;
+}
+
+@media (max-width: 480px) {
+  .confirmation-dialog {
+    min-width: 300px;
+    max-width: 95vw;
+  }
+
+  .dialog-title {
+    font-size: 18px;
+    padding: 20px 20px 0 20px;
+  }
+
+  .dialog-content {
+    padding: 0 20px 20px 20px;
+  }
+
+  .dialog-actions {
+    padding: 12px 20px 20px 20px;
+    flex-direction: column-reverse;
+
+    .cancel-button,
+    .confirm-button {
+      width: 100%;
+      margin: 2px 0;
+    }
+  }
+}
+
+   :host-context(.dark-theme) {
+     .dialog-title {
+       color: var(--text-primary);
+     }
+
+     .dialog-content p {
+       color: var(--text-secondary);
+     }
+
+     .dialog-actions {
+       border-top-color: var(--border-color);
+       background-color: var(--surface-color);
+     }
+   }
+
+   .cancel-button:hover {
+     background-color: var(--hover-color);
+   }
+
+.confirm-button {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+}

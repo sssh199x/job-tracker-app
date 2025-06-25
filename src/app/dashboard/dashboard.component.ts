@@ -8,9 +8,11 @@ import { LoadingService } from '../services/loading.service';
 import { StatusService } from '../core/services/status.service';
 import { DateUtilService } from '../core/services/date-util.service';
 import { PermissionService } from '../services/permission.service';
+import { ConfirmationDialogService } from '../services/confirmation-dialog.service';
 import { Observable, switchMap, Subject, BehaviorSubject, combineLatest } from 'rxjs';
 import { map, startWith, tap, takeUntil, finalize, delay } from 'rxjs/operators';
 import { firstValueFrom } from 'rxjs';
+import { Router } from '@angular/router';
 
 // Material imports
 import { MatCardModule } from '@angular/material/card';
@@ -23,6 +25,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+// Removed MatDialogModule and MatDialog since we're using the service now
 
 @Component({
   selector: 'app-dashboard',
@@ -40,6 +43,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
     MatDividerModule,
     MatTooltipModule,
     MatSnackBarModule
+    // Removed MatDialogModule since we're using the service
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
@@ -70,6 +74,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private loadingService: LoadingService,
     private permissions: PermissionService,
     private snackBar: MatSnackBar,
+    private router: Router,
+    private confirmationDialog: ConfirmationDialogService,
     public statusService: StatusService,
     public dateUtil: DateUtilService
   ) {
@@ -235,7 +241,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     window.open(url, '_blank', 'noopener,noreferrer');
   }
 
-  // EDIT APPLICATION METHOD
+  // COMPLETE EDIT APPLICATION METHOD
   async editApplication(app: JobApplication) {
     console.log('✏️ Edit application clicked:', app);
     console.log('✏️ Application details:', {
@@ -256,16 +262,23 @@ export class DashboardComponent implements OnInit, OnDestroy {
         return;
       }
 
-      // TODO: Implement edit logic
-      console.log('✏️ TODO: Navigate to edit form with application ID:', app.id);
-      this.snackBar.open('Edit feature coming soon!', 'Close', { duration: 3000 });
-      // this.router.navigate(['/job-form', app.id]);
+      if (!app.id) {
+        console.error('❌ Application ID is missing');
+        this.snackBar.open('Error: Application ID not found', 'Close', { duration: 3000 });
+        return;
+      }
+
+      // Navigate to edit form
+      console.log('✏️ Navigating to edit form with application ID:', app.id);
+      await this.router.navigate(['/job-form', app.id]);
+
     } catch (error) {
-      console.error('❌ Error checking edit permission:', error);
+      console.error('❌ Error navigating to edit:', error);
+      this.snackBar.open('Error opening edit form', 'Close', { duration: 3000 });
     }
   }
 
-  // DELETE APPLICATION METHOD
+  // COMPLETE DELETE APPLICATION METHOD
   async deleteApplication(app: JobApplication) {
     console.log('🗑️ Delete application clicked:', app);
     console.log('🗑️ Application details:', {
@@ -286,22 +299,78 @@ export class DashboardComponent implements OnInit, OnDestroy {
         return;
       }
 
-      // TODO: Implement delete logic with confirmation
-      console.log('🗑️ TODO: Show confirmation dialog before deleting');
+      if (!app.id) {
+        console.error('❌ Application ID is missing');
+        this.snackBar.open('Error: Application ID not found', 'Close', { duration: 3000 });
+        return;
+      }
 
-      // For now, just show a message
-      const confirmDelete = confirm(`Are you sure you want to delete the application for ${app.jobTitle} at ${app.company}?`);
+      // Show Material Dialog confirmation
+      const confirmed = await firstValueFrom(
+        this.confirmationDialog.confirmApplicationDelete(app.jobTitle, app.company)
+      );
 
-      if (confirmDelete) {
-        console.log('🗑️ User confirmed deletion');
-        this.snackBar.open('Delete feature coming soon!', 'Close', { duration: 3000 });
-        // TODO: await this.jobService.deleteApplication(app.id);
-        // this.snackBar.open('Application deleted successfully', 'Close', { duration: 2000 });
+      if (confirmed) {
+        console.log('🗑️ User confirmed deletion, proceeding...');
+
+        try {
+          // Show loading state
+          this.refreshLoading$.next(true);
+
+          // Delete the application
+          await this.jobService.deleteApplication(app.id);
+
+          console.log('✅ Application deleted successfully');
+          this.snackBar.open(
+            `Application for ${app.jobTitle} at ${app.company} deleted successfully`,
+            'Close',
+            {
+              duration: 4000,
+              panelClass: ['success-snackbar']
+            }
+          );
+
+        } catch (deleteError) {
+          console.error('❌ Error deleting application:', deleteError);
+          this.snackBar.open(
+            'Error deleting application. Please try again.',
+            'Close',
+            {
+              duration: 3000,
+              panelClass: ['error-snackbar']
+            }
+          );
+        } finally {
+          this.refreshLoading$.next(false);
+        }
       } else {
         console.log('🗑️ User cancelled deletion');
       }
+
     } catch (error) {
-      console.error('❌ Error checking delete permission:', error);
+      console.error('❌ Error in delete process:', error);
+      this.snackBar.open('Error processing delete request', 'Close', { duration: 3000 });
+    }
+  }
+
+  // Duplicate application method
+  async duplicateApplication(app: JobApplication) {
+    console.log('📋 Duplicate application clicked:', app);
+
+    try {
+      const canEdit = await firstValueFrom(this.permissions.canModifyApplication(app.userId));
+
+      if (!canEdit) {
+        this.snackBar.open('You cannot duplicate this application', 'Close', { duration: 3000 });
+        return;
+      }
+
+      // Navigate to new form with pre-filled data (you can implement this later)
+      console.log('📋 TODO: Implement duplicate functionality');
+      this.snackBar.open('Duplicate feature coming soon!', 'Close', { duration: 3000 });
+
+    } catch (error) {
+      console.error('❌ Error duplicating application:', error);
     }
   }
 
@@ -319,6 +388,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
 
     return counts;
+  }
+
+  // Get success rate (offers / total applications)
+  getSuccessRate(): number {
+    if (this.currentApplications.length === 0) return 0;
+    const offers = this.getStatusCounts().offer;
+    return Math.round((offers / this.currentApplications.length) * 100);
   }
 
   // Helper method to check if currently refreshing

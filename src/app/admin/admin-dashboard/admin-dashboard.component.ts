@@ -1,14 +1,16 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { JobApplicationService, JobApplicationWithUser } from '../../services/job-application.service';
 import { AdminService, UserProfile } from '../../services/admin.service';
 import { LoadingService } from '../../services/loading.service';
 import { StatusService } from '../../core/services/status.service';
 import { DateUtilService } from '../../core/services/date-util.service';
-import { PermissionService } from '../../services/permission.service';  // ADD THIS
-import { Observable, combineLatest, Subject } from 'rxjs';
+import { PermissionService } from '../../services/permission.service';
+import { ConfirmationDialogService } from '../../services/confirmation-dialog.service';
+import { Observable, combineLatest, Subject, BehaviorSubject } from 'rxjs';
 import { map, startWith, tap, takeUntil, finalize, delay } from 'rxjs/operators';
-import { firstValueFrom } from 'rxjs';  // ADD THIS - Modern RxJS way
+import { firstValueFrom } from 'rxjs';
 
 // Material imports
 import { MatCardModule } from '@angular/material/card';
@@ -22,6 +24,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatTabsModule } from '@angular/material/tabs';
 import { ExportService } from '../../services/export.service';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { UserManagementComponent } from '../user-management/user-management.component';
 
 interface AdminStats {
@@ -46,6 +49,7 @@ interface AdminStats {
     MatDividerModule,
     MatTabsModule,
     MatTooltipModule,
+    MatSnackBarModule, // 🆕 Added
     UserManagementComponent
   ],
   templateUrl: './admin-dashboard.component.html',
@@ -64,12 +68,17 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   canExportData$!: Observable<boolean>;
   canViewAllApplications$!: Observable<boolean>;
   canManageUsers$!: Observable<boolean>;
+  canEditApplications$!: Observable<boolean>; // 🆕 Added
+  canDeleteApplications$!: Observable<boolean>; // 🆕 Added
 
   private userLookupMap = new Map<string, string>();
 
+  //Add refresh loading state for admin operations
+  private refreshLoading$ = new BehaviorSubject<boolean>(false);
+
   private destroy$ = new Subject<void>();
 
-  // Define table columns
+  // Define table columns - Updated to include actions
   displayedColumns: string[] = ['userEmail', 'jobTitle', 'company', 'dateApplied', 'location', 'status', 'salary', 'actions'];
 
   constructor(
@@ -77,7 +86,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     private adminService: AdminService,
     private exportService: ExportService,
     private loadingService: LoadingService,
-    private permissions: PermissionService,  // ADD THIS
+    private permissions: PermissionService,
+    private router: Router,
+    private confirmationDialog: ConfirmationDialogService,
+    private snackBar: MatSnackBar,
     public statusService: StatusService,
     public dateUtil: DateUtilService
   ) {
@@ -85,6 +97,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.canExportData$ = this.permissions.canExportData$;
     this.canViewAllApplications$ = this.permissions.canViewAllApplications$;
     this.canManageUsers$ = this.permissions.canViewUserManagement$;
+
+    //Admin can edit/delete any application
+    this.canEditApplications$ = this.permissions.isAdmin$;
+    this.canDeleteApplications$ = this.permissions.isAdmin$;
   }
 
   ngOnInit() {
@@ -99,6 +115,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       tap(applications => {
         this.currentApplications = applications;
         console.log('🔧 Admin: Applications loaded:', applications.length);
+        // Stop refresh loading when data arrives
+        this.refreshLoading$.next(false);
       }),
       takeUntil(this.destroy$)
     );
@@ -114,19 +132,30 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     );
 
-    // Create loading state - signal complete when both data sources are loaded
-    this.loading$ = combineLatest([this.applications$, this.users$]).pipe(
-      tap(() => {
-        console.log('🔧 Admin: All data loaded, turning off component loading');
-        // Signal that component loading is complete
-        this.loadingService.setComponentLoading(false);
+    //Create combined loading state (initial load OR refresh)
+    this.loading$ = combineLatest([
+      this.applications$.pipe(
+        map(() => false),
+        startWith(true)
+      ),
+      this.users$.pipe(
+        map(() => false),
+        startWith(true)
+      ),
+      this.refreshLoading$
+    ]).pipe(
+      map(([appsLoading, usersLoading, refreshLoading]) => appsLoading || usersLoading || refreshLoading),
+      tap((isLoading) => {
+        if (!isLoading) {
+          console.log('🔧 Admin: All data loaded, turning off component loading');
+          this.loadingService.setComponentLoading(false);
+        }
       }),
-      map(() => false),
-      startWith(true),
       finalize(() => {
         // Ensure loading is turned off even if stream errors
         console.log('🔧 Admin: Data loading finalized');
         this.loadingService.setComponentLoading(false);
+        this.refreshLoading$.next(false);
       })
     );
 
@@ -142,6 +171,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     console.log('🔧 Admin dashboard component destroying...');
     this.loadingService.setComponentLoading(false);
+    this.refreshLoading$.next(false);
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -180,6 +210,140 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     return app.id || index.toString();
   }
 
+  //ADMIN EDIT APPLICATION METHOD
+  async editApplication(app: JobApplicationWithUser) {
+    console.log('✏️ Admin edit application clicked:', app);
+
+    const userEmail = this.getUserEmail(app.userId);
+    console.log('✏️ Application details:', {
+      id: app.id,
+      jobTitle: app.jobTitle,
+      company: app.company,
+      userId: app.userId,
+      userEmail: userEmail
+    });
+
+    try {
+      const canEdit = await firstValueFrom(this.canEditApplications$);
+      console.log('✏️ Admin can edit check:', canEdit);
+
+      if (!canEdit) {
+        this.snackBar.open('You do not have permission to edit applications', 'Close', { duration: 3000 });
+        return;
+      }
+
+      if (!app.id) {
+        console.error('❌ Application ID is missing');
+        this.snackBar.open('Error: Application ID not found', 'Close', { duration: 3000 });
+        return;
+      }
+
+      // Navigate to admin edit route
+      console.log('✏️ Admin navigating to edit application:', app.id, 'for user:', userEmail);
+      await this.router.navigate(['/admin/edit-application', app.id]);
+
+    } catch (error) {
+      console.error('❌ Error navigating to admin edit:', error);
+      this.snackBar.open('Error opening edit form', 'Close', { duration: 3000 });
+    }
+  }
+
+  // ADMIN DELETE APPLICATION METHOD
+  async deleteApplication(app: JobApplicationWithUser) {
+    console.log('🗑️ Admin delete application clicked:', app);
+    console.log('🗑️ Application details:', {
+      id: app.id,
+      jobTitle: app.jobTitle,
+      company: app.company,
+      userId: app.userId,
+      userEmail: this.getUserEmail(app.userId)
+    });
+
+    try {
+      const canDelete = await firstValueFrom(this.canDeleteApplications$);
+      console.log('🗑️ Admin can delete check:', canDelete);
+
+      if (!canDelete) {
+        this.snackBar.open('You do not have permission to delete applications', 'Close', { duration: 3000 });
+        return;
+      }
+
+      if (!app.id) {
+        console.error('❌ Application ID is missing');
+        this.snackBar.open('Error: Application ID not found', 'Close', { duration: 3000 });
+        return;
+      }
+
+      // Show admin-specific confirmation dialog
+      const userEmail = this.getUserEmail(app.userId);
+      const confirmed = await firstValueFrom(
+        this.confirmationDialog.confirm({
+          title: 'Delete User Application',
+          message: `Are you sure you want to delete this application?\n\n<strong>User:</strong> ${userEmail}\n<strong>Position:</strong> ${app.jobTitle}\n<strong>Company:</strong> ${app.company}\n\nThis action cannot be undone and will permanently remove all application data.`,
+          confirmText: 'Delete Application',
+          cancelText: 'Cancel',
+          type: 'danger',
+          icon: 'delete_forever'
+        })
+      );
+
+      if (confirmed) {
+        console.log('🗑️ Admin confirmed deletion, proceeding...');
+
+        try {
+          // Show loading state
+          this.refreshLoading$.next(true);
+
+          // Delete the application
+          await this.jobService.deleteApplication(app.id);
+
+          console.log('✅ Admin successfully deleted application');
+          this.snackBar.open(
+            `Application for ${app.jobTitle} at ${app.company} (${userEmail}) deleted successfully`,
+            'Close',
+            {
+              duration: 5000,
+              panelClass: ['success-snackbar']
+            }
+          );
+
+          // Trigger refresh of applications data
+          this.refreshApplications();
+
+        } catch (deleteError) {
+          console.error('❌ Admin error deleting application:', deleteError);
+          this.snackBar.open(
+            'Error deleting application. Please try again.',
+            'Close',
+            {
+              duration: 3000,
+              panelClass: ['error-snackbar']
+            }
+          );
+        } finally {
+          this.refreshLoading$.next(false);
+        }
+      } else {
+        console.log('🗑️ Admin cancelled deletion');
+      }
+
+    } catch (error) {
+      console.error('❌ Error in admin delete process:', error);
+      this.snackBar.open('Error processing delete request', 'Close', { duration: 3000 });
+    }
+  }
+
+  // Refresh applications data
+  private refreshApplications(): void {
+    console.log('🔄 Admin refreshing applications data');
+    this.jobService.refreshAllApplications();
+  }
+
+  // 🆕 Check if currently refreshing
+  isRefreshing(): Observable<boolean> {
+    return this.refreshLoading$.asObservable();
+  }
+
   async exportAllAsCSV() {
     try {
       // Optional: Double-check permission programmatically
@@ -197,8 +361,11 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
       const filename = `all-job-applications-${new Date().toISOString().split('T')[0]}`;
       this.exportService.exportAsCSV(enhancedData, filename);
+
+      this.snackBar.open('Data exported successfully', 'Close', { duration: 2000 });
     } catch (error) {
       console.error('Error exporting CSV:', error);
+      this.snackBar.open('Error exporting data', 'Close', { duration: 3000 });
     }
   }
 
@@ -219,8 +386,11 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
       const filename = `all-job-applications-${new Date().toISOString().split('T')[0]}`;
       this.exportService.exportAsJSON(enhancedData, filename);
+
+      this.snackBar.open('Data exported successfully', 'Close', { duration: 2000 });
     } catch (error) {
       console.error('Error exporting JSON:', error);
+      this.snackBar.open('Error exporting data', 'Close', { duration: 3000 });
     }
   }
 

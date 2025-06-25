@@ -7,6 +7,7 @@ import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { getAuth, provideAuth } from '@angular/fire/auth';
 import { getFirestore, provideFirestore } from '@angular/fire/firestore';
 import { LogLevel, setLogLevel } from '@angular/fire';
+import {getStorage, provideStorage} from '@angular/fire/storage';
 
 // Set log level based on environment
 setLogLevel(appConfig.production ? LogLevel.WARN : LogLevel.VERBOSE);
@@ -24,6 +25,7 @@ export const appConfiguration: ApplicationConfig = {
     provideRouter(routes),
     provideFirebaseApp(() => initializeApp(firebaseConfig)),
     provideAuth(() => getAuth()),
-    provideFirestore(() => getFirestore())
+    provideFirestore(() => getFirestore()),
+    provideStorage(() => getStorage()),
   ]
 };

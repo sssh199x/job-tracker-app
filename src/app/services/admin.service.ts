@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AuthService } from './auth.service';
 import { Firestore, doc, getDoc, setDoc, collection, collectionData } from '@angular/fire/firestore';
-import { Observable, switchMap, of, BehaviorSubject } from 'rxjs';
+import {Observable, switchMap, of, BehaviorSubject, firstValueFrom} from 'rxjs';
 import { map, shareReplay, catchError, distinctUntilChanged } from 'rxjs/operators';
 
 export interface UserProfile {
@@ -104,7 +104,7 @@ export class AdminService {
     );
   }
 
-  // Get user profile (simplified, no caching for this method)
+  // Get user profile
   getUserProfile(uid: string): Observable<UserProfile | null> {
     console.log(`📖 Getting user profile for: ${uid}`);
 
@@ -173,7 +173,6 @@ export class AdminService {
   }
 
   // Get all users (admin only)
-  // Get all users (admin only) - FIXED to properly convert dates
   getAllUsers(): Observable<UserProfile[]> {
     console.log('👥 Getting all users');
     const usersCollection = collection(this.firestore, 'users');
@@ -273,7 +272,77 @@ export class AdminService {
       throw error;
     }
   }
+  /**
+   * Get user email by user ID
+   * This method looks up a user's email from the UserProfile collection
+   */
+  async getUserEmailById(userId: string): Promise<string | null> {
+    try {
+      console.log('👤 Looking up email for user ID:', userId);
 
+      const users = await firstValueFrom(this.getAllUsers());
+      const user = users.find(u => u.uid === userId);
+
+      if (user) {
+        console.log('✅ Found user email:', user.email);
+        return user.email;
+      } else {
+        console.warn('❌ User not found for ID:', userId);
+        return null;
+      }
+    } catch (error) {
+      console.error('❌ Error looking up user email:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get multiple user emails by user IDs (for bulk operations)
+   */
+  async getUserEmailsByIds(userIds: string[]): Promise<Map<string, string>> {
+    try {
+      console.log('👥 Looking up emails for user IDs:', userIds);
+
+      const users = await firstValueFrom(this.getAllUsers());
+      const emailMap = new Map<string, string>();
+
+      userIds.forEach(userId => {
+        const user = users.find(u => u.uid === userId);
+        if (user) {
+          emailMap.set(userId, user.email);
+        }
+      });
+
+      console.log('✅ Found emails for', emailMap.size, 'users');
+      return emailMap;
+    } catch (error) {
+      console.error('❌ Error looking up user emails:', error);
+      return new Map();
+    }
+  }
+
+  /**
+   * Get user profile by user ID (full profile, not just email)
+   */
+  async getUserProfileById(userId: string): Promise<UserProfile | null> {
+    try {
+      console.log('👤 Looking up profile for user ID:', userId);
+
+      const users = await firstValueFrom(this.getAllUsers());
+      const user = users.find(u => u.uid === userId);
+
+      if (user) {
+        console.log('✅ Found user profile:', user.email);
+        return user;
+      } else {
+        console.warn('❌ User profile not found for ID:', userId);
+        return null;
+      }
+    } catch (error) {
+      console.error('❌ Error looking up user profile:', error);
+      return null;
+    }
+  }
   // Method to manually refresh admin status
   refreshAdminStatus(): void {
     console.log('🔄 Manually refreshing admin status');

@@ -1,17 +1,42 @@
 <div class="page-container">
-  <mat-card class="form-card">
+  <!-- Loading Spinner for Edit Mode -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading application data...</p>
+  </div>
+
+  <!-- Main Form Card -->
+  <mat-card class="form-card" *ngIf="!isLoading">
     <mat-card-header>
       <mat-card-title>
-        <mat-icon>work</mat-icon>
-        Submit Job Application
+        <!-- Dynamic title and icon based on mode -->
+        <mat-icon>{{ isAdminMode ? 'admin_panel_settings' : (isEditMode ? 'edit' : 'work') }}</mat-icon>
+        {{ getPageTitle() }}
       </mat-card-title>
       <mat-card-subtitle>
-        Track your job application progress
+        <!-- Dynamic subtitle based on mode -->
+        {{ getPageSubtitle() }}
       </mat-card-subtitle>
     </mat-card-header>
 
     <mat-card-content>
+      <!-- Enhanced Admin Context Banner -->
+      <div *ngIf="isAdminMode" class="admin-context-banner">
+        <mat-icon>admin_panel_settings</mat-icon>
+        <div class="admin-context-content">
+          <h4>Administrator Mode</h4>
+          <p>You are editing this application as an administrator</p>
+          <p *ngIf="applicationOwnerEmail">
+            <strong>Application Owner:</strong> {{ applicationOwnerEmail }}
+          </p>
+          <p *ngIf="currentApplication">
+            <strong>Application ID:</strong> {{ currentApplication.id }}
+          </p>
+        </div>
+      </div>
+
       <form [formGroup]="jobForm" (ngSubmit)="onSubmit()" class="job-form">
+
         <!-- Job Title and Company Row -->
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
@@ -113,6 +138,92 @@
           </mat-form-field>
         </div>
 
+        <!-- Resume Selection Row -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <mat-icon>description</mat-icon>
+            Resume Attachment
+          </h3>
+
+          <div class="form-row">
+            <!-- Resume Selection Dropdown -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Select Resume</mat-label>
+              <mat-select formControlName="resumeId" placeholder="Choose a resume">
+                <mat-option value="">No resume selected</mat-option>
+                <mat-option *ngFor="let resume of userResumes$ | async" [value]="resume.id">
+                  <div class="resume-option">
+                    <mat-icon>description</mat-icon>
+                    <span class="resume-name">{{ resume.displayName }}</span>
+                    <mat-chip *ngIf="resume.isDefault" class="default-chip" color="primary">Default</mat-chip>
+                  </div>
+                </mat-option>
+              </mat-select>
+              <mat-icon matSuffix>description</mat-icon>
+              <mat-hint>Select from your uploaded resumes or upload a new one</mat-hint>
+            </mat-form-field>
+
+            <!-- Upload New Resume Button -->
+            <div class="upload-section">
+              <input
+                type="file"
+                #fileInput
+                accept=".pdf"
+                (change)="onResumeUpload($event)"
+                style="display: none">
+
+              <button
+                mat-stroked-button
+                type="button"
+                (click)="fileInput.click()"
+                [disabled]="isUploadingResume || !(canUploadResumes$ | async)"
+                class="upload-button">
+                <mat-spinner *ngIf="isUploadingResume" diameter="20" class="button-spinner"></mat-spinner>
+                <mat-icon *ngIf="!isUploadingResume">upload_file</mat-icon>
+                <span>{{ isUploadingResume ? 'Uploading...' : 'Upload New' }}</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Selected Resume Info -->
+          <div *ngIf="selectedResume" class="resume-info-card">
+            <div class="resume-info-header">
+              <mat-icon class="resume-icon">description</mat-icon>
+              <div class="resume-details">
+                <h4 class="resume-title">{{ selectedResume.displayName }}</h4>
+                <div class="resume-meta">
+                  <span class="file-size">{{ resumeService.formatFileSize(selectedResume.fileSize) }}</span>
+                  <span class="upload-date">Uploaded {{ selectedResume.uploadDate | date:'mediumDate' }}</span>
+                  <mat-chip *ngIf="selectedResume.isDefault" class="default-chip" color="primary">Default Resume</mat-chip>
+                </div>
+              </div>
+              <div class="resume-actions">
+                <button
+                  mat-icon-button
+                  type="button"
+                  (click)="downloadResume()"
+                  matTooltip="Download Resume">
+                  <mat-icon>download</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Upload Guidelines -->
+          <div class="upload-guidelines">
+            <h4 class="guidelines-title">
+              <mat-icon>info</mat-icon>
+              Upload Guidelines
+            </h4>
+            <ul class="guidelines-list">
+              <li>Only PDF files are accepted</li>
+              <li>Maximum file size: {{ getResumeValidationRules().maxSizeMB }}MB</li>
+              <li>Use descriptive names for easy identification</li>
+              <li>You can manage all resumes in your profile</li>
+            </ul>
+          </div>
+        </div>
+
         <!-- Notes Row -->
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
@@ -138,20 +249,32 @@
         type="button"
         (click)="navigateToDashboard()"
         class="secondary-button">
-        <mat-icon>dashboard</mat-icon>
-        View Dashboard
+        <mat-icon>{{ isAdminMode ? 'admin_panel_settings' : 'dashboard' }}</mat-icon>
+        {{ isAdminMode ? 'Back to Admin' : 'View Dashboard' }}
       </button>
 
+      <!-- Manage Resumes Button -->
+      <button
+        mat-button
+        type="button"
+        (click)="navigateToResumeManagement()"
+        class="secondary-button"
+        *ngIf="canUploadResumes$ | async">
+        <mat-icon>folder</mat-icon>
+        Manage Resumes
+      </button>
+
+      <!-- Dynamic submit button based on mode -->
       <button
         mat-raised-button
         color="primary"
         type="submit"
-        [disabled]="jobForm.invalid || isSubmitting"
+        [disabled]="!canSubmitForm()"
         (click)="onSubmit()"
         class="submit-button">
         <mat-spinner *ngIf="isSubmitting" diameter="20" class="button-spinner"></mat-spinner>
-        <mat-icon *ngIf="!isSubmitting">send</mat-icon>
-        <span>{{ isSubmitting ? 'Submitting...' : 'Submit Application' }}</span>
+        <mat-icon *ngIf="!isSubmitting">{{ isEditMode ? 'save' : 'send' }}</mat-icon>
+        <span>{{ getSubmitButtonText() }}</span>
       </button>
     </mat-card-actions>
   </mat-card>

@@ -15,7 +15,8 @@
   <!-- Loading Spinner -->
   <div *ngIf="loading$ | async" class="loading-container">
     <mat-spinner diameter="50"></mat-spinner>
-    <p>Loading admin data...</p>
+    <p *ngIf="!(isRefreshing() | async)">Loading admin data...</p>
+    <p *ngIf="(isRefreshing() | async)">Refreshing data...</p>
   </div>
 
   <!-- Admin Content -->
@@ -193,17 +194,56 @@
                     </mat-cell>
                   </ng-container>
 
-                  <!-- Actions Column -->
+                  <!-- 🆕 ENHANCED Actions Column with Admin Edit/Delete -->
                   <ng-container matColumnDef="actions">
                     <mat-header-cell *matHeaderCellDef class="header-cell">Actions</mat-header-cell>
-                    <mat-cell *matCellDef="let app">
+                    <mat-cell *matCellDef="let app" class="actions-cell">
+                      <!-- View Job Posting -->
                       <button *ngIf="app.jobUrl"
                               mat-icon-button
                               (click)="openJobUrl(app.jobUrl)"
                               matTooltip="View Job Posting">
                         <mat-icon>open_in_new</mat-icon>
                       </button>
-                      <span *ngIf="!app.jobUrl" class="no-link">-</span>
+
+                      <!-- 🆕 Admin actions menu (three dots) -->
+                      <button mat-icon-button
+                              [matMenuTriggerFor]="adminActionMenu"
+                              matTooltip="Admin actions">
+                        <mat-icon>more_vert</mat-icon>
+                      </button>
+
+                      <mat-menu #adminActionMenu="matMenu">
+                        <!-- 🆕 Edit option for admins -->
+                        <button mat-menu-item
+                                (click)="editApplication(app)"
+                                *ngIf="canEditApplications$ | async">
+                          <mat-icon>edit</mat-icon>
+                          <span>Edit Application</span>
+                        </button>
+
+                        <!-- 🆕 Delete option for admins -->
+                        <button mat-menu-item
+                                (click)="deleteApplication(app)"
+                                class="delete-action"
+                                *ngIf="canDeleteApplications$ | async">
+                          <mat-icon>delete</mat-icon>
+                          <span>Delete Application</span>
+                        </button>
+
+                        <mat-divider></mat-divider>
+
+                        <!-- Additional admin actions -->
+                        <button mat-menu-item disabled>
+                          <mat-icon>visibility</mat-icon>
+                          <span>View Details</span>
+                          <small>(Coming Soon)</small>
+                        </button>
+                      </mat-menu>
+
+                      <!-- Show placeholder if no actions available -->
+                      <span *ngIf="!app.jobUrl && !(canEditApplications$ | async) && !(canDeleteApplications$ | async)"
+                            class="no-link">-</span>
                     </mat-cell>
                   </ng-container>
 

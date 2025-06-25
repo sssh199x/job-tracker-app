@@ -1,8 +1,7 @@
-// src/app/services/job-application.service.ts - Enhanced with refresh capability
 import { Injectable } from '@angular/core';
-import { Firestore, collection, addDoc, collectionData, query, orderBy, where } from '@angular/fire/firestore';
+import { Firestore, collection, addDoc, collectionData, query, orderBy, where, doc, updateDoc, deleteDoc, getDoc } from '@angular/fire/firestore';
 import { Observable, BehaviorSubject, switchMap } from 'rxjs';
-import {delay} from 'rxjs/operators';
+import { delay } from 'rxjs/operators';
 
 export interface JobApplication {
   id?: string;
@@ -15,10 +14,27 @@ export interface JobApplication {
   status: 'applied' | 'interview' | 'offer' | 'rejected';
   notes: string;
   userId: string;
+  // Resume fields
+  resumeId?: string;
+  resumeName?: string;
+  resumeUrl?: string;
 }
 
 export interface JobApplicationWithUser extends JobApplication {
   userEmail?: string;
+}
+
+// Form data interface for the job form component
+export interface JobApplicationFormData {
+  jobTitle: string;
+  company: string;
+  dateApplied: Date;
+  location: string;
+  salary: number;
+  jobUrl: string;
+  status: 'applied' | 'interview' | 'offer' | 'rejected';
+  notes: string;
+  resumeId?: string;          // Selected resume ID
 }
 
 @Injectable({
@@ -50,6 +66,76 @@ export class JobApplicationService {
     } catch (error) {
       console.error('❌ Error adding application:', error);
       throw error;
+    }
+  }
+
+  // Get application by ID (for edit mode)
+  async getApplicationById(id: string): Promise<JobApplication | null> {
+    try {
+      console.log('📖 Getting application by ID:', id);
+      const docRef = doc(this.firestore, this.collectionName, id);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const data = { id: docSnap.id, ...docSnap.data() } as JobApplication;
+        console.log('✅ Application found:', data.jobTitle);
+        return data;
+      } else {
+        console.log('❌ Application not found with ID:', id);
+        return null;
+      }
+    } catch (error) {
+      console.error('❌ Error getting application:', error);
+      throw error;
+    }
+  }
+
+  // Update existing job application
+  async updateApplication(id: string, applicationData: Partial<JobApplication>): Promise<void> {
+    try {
+      console.log('✏️ Updating application:', id, applicationData.jobTitle);
+      const docRef = doc(this.firestore, this.collectionName, id);
+
+      // Remove the id field from update data to avoid conflicts
+      const { id: _, ...updateData } = applicationData as any;
+
+      await updateDoc(docRef, updateData);
+      console.log('✅ Application updated successfully');
+
+      // Trigger refresh for user applications
+      this.refreshUserApplications();
+      this.refreshAllApplications();
+    } catch (error) {
+      console.error('❌ Error updating application:', error);
+      throw error;
+    }
+  }
+
+  // Delete job application
+  async deleteApplication(id: string): Promise<void> {
+    try {
+      console.log('🗑️ Deleting application:', id);
+      const docRef = doc(this.firestore, this.collectionName, id);
+      await deleteDoc(docRef);
+      console.log('✅ Application deleted successfully');
+
+      // Trigger refresh for user applications
+      this.refreshUserApplications();
+      this.refreshAllApplications();
+    } catch (error) {
+      console.error('❌ Error deleting application:', error);
+      throw error;
+    }
+  }
+
+  // Check if application exists and belongs to user
+  async canUserModifyApplication(applicationId: string, userId: string): Promise<boolean> {
+    try {
+      const application = await this.getApplicationById(applicationId);
+      return application !== null && application.userId === userId;
+    } catch (error) {
+      console.error('❌ Error checking application ownership:', error);
+      return false;
     }
   }
 
@@ -96,8 +182,6 @@ export class JobApplicationService {
   getApplicationStatistics(): Observable<any> {
     return this.getAllApplications();
   }
-
-  // PUBLIC REFRESH METHODS
 
   // Refresh user applications - triggers new Firestore query
   refreshUserApplications(): void {
