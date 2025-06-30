@@ -26,6 +26,7 @@ import { ExportService } from '../../services/export.service';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { UserManagementComponent } from '../user-management/user-management.component';
+import {ApplicationDetailsService} from '../../services/application-details.service';
 
 interface AdminStats {
   totalApplications: number;
@@ -49,7 +50,7 @@ interface AdminStats {
     MatDividerModule,
     MatTabsModule,
     MatTooltipModule,
-    MatSnackBarModule, // 🆕 Added
+    MatSnackBarModule,
     UserManagementComponent
   ],
   templateUrl: './admin-dashboard.component.html',
@@ -68,8 +69,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   canExportData$!: Observable<boolean>;
   canViewAllApplications$!: Observable<boolean>;
   canManageUsers$!: Observable<boolean>;
-  canEditApplications$!: Observable<boolean>; // 🆕 Added
-  canDeleteApplications$!: Observable<boolean>; // 🆕 Added
+  canEditApplications$!: Observable<boolean>;
+  canDeleteApplications$!: Observable<boolean>;
 
   private userLookupMap = new Map<string, string>();
 
@@ -89,6 +90,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     private permissions: PermissionService,
     private router: Router,
     private confirmationDialog: ConfirmationDialogService,
+    private applicationDetails: ApplicationDetailsService,
     private snackBar: MatSnackBar,
     public statusService: StatusService,
     public dateUtil: DateUtilService
@@ -339,14 +341,14 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.jobService.refreshAllApplications();
   }
 
-  // 🆕 Check if currently refreshing
+  // Check if currently refreshing
   isRefreshing(): Observable<boolean> {
     return this.refreshLoading$.asObservable();
   }
 
   async exportAllAsCSV() {
     try {
-      // Optional: Double-check permission programmatically
+      // Double-check permission programmatically
       const canExport = await firstValueFrom(this.canExportData$);
       if (!canExport) {
         console.warn('User does not have export permission');
@@ -371,7 +373,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   async exportAllAsJSON() {
     try {
-      // Optional: Double-check permission programmatically
+      // Double-check permission programmatically
       const canExport = await firstValueFrom(this.canExportData$);
       if (!canExport) {
         console.warn('User does not have export permission');
@@ -397,5 +399,44 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   // Open job URL
   openJobUrl(url: string) {
     window.open(url, '_blank', 'noopener,noreferrer');
+  }
+
+  /**
+   * View application details in admin modal with user context
+   * @param app - The application to view
+   */
+  async viewApplicationDetails(app: JobApplicationWithUser) {
+    console.log('👁️ Admin view application details clicked:', app);
+    console.log('👁️ Application details:', {
+      id: app.id,
+      jobTitle: app.jobTitle,
+      company: app.company,
+      userId: app.userId,
+      userEmail: this.getUserEmail(app.userId)
+    });
+
+    try {
+      if (!app.id) {
+        console.error('❌ Application ID is missing');
+        this.snackBar.open('Error: Application details not available', 'Close', { duration: 3000 });
+        return;
+      }
+
+      // Get user email for admin context
+      const userEmail = this.getUserEmail(app.userId);
+
+      // Open details modal in admin context with user information
+      console.log('👁️ Opening admin details modal for application:', app.id, 'user:', userEmail);
+      const result$ = await this.applicationDetails.openAdminDetailsModal(app, userEmail);
+
+      // Subscribe to modal close event
+      result$.subscribe(result => {
+        console.log('👁️ Admin details modal closed, result:', result);
+      });
+
+    } catch (error) {
+      console.error('❌ Error opening admin application details:', error);
+      this.snackBar.open('Error opening application details', 'Close', { duration: 3000 });
+    }
   }
 }

@@ -3,7 +3,7 @@ import { Firestore, collection, addDoc, collectionData, query, where, orderBy, d
 import { Storage, ref, uploadBytes, getDownloadURL, deleteObject } from '@angular/fire/storage';
 import { AuthService } from './auth.service';
 import { Resume, ResumeUploadData } from '../interfaces/resume.interface';
-import { Observable, BehaviorSubject, switchMap, from, throwError } from 'rxjs';
+import { Observable, BehaviorSubject, switchMap, throwError } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
 import {PermissionService} from './permission.service';
 

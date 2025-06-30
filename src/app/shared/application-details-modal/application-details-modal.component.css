@@ -1,0 +1,488 @@
+/* Modal Header */
+.modal-header {
+  padding: 20px 0;
+  background: linear-gradient(135deg, #9273d1 0%, #e3dcf8 100%);
+  color: white;
+  margin: 0;
+  border-radius: 12px 12px 0 0;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.title-section h2 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.4rem;
+  font-weight: 500;
+}
+
+.context-info {
+  margin-top: 12px;
+  margin-left: 20px;
+}
+
+.user-chip {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 0.875rem;
+}
+
+.user-chip .mat-icon {
+  color: white !important;
+  font-size: 16px;
+}
+
+.close-button {
+  color: white;
+  opacity: 0.9;
+  transition: opacity 0.2s ease;
+}
+
+.close-button:hover {
+  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Modal Content */
+.modal-content {
+  padding: 24px 24px 24px 24px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* Job Information Section */
+.job-info-section {
+  margin-top: 8px;
+}
+
+/* Sections */
+.details-section {
+  margin-top: 8px;
+  margin-bottom:  32px;
+}
+
+/* Ensure all sections have proper bottom spacing */
+.details-section:last-child {
+  margin-bottom: 24px;
+}
+
+/* Force bottom margin for metadata section even if it's last */
+.metadata-section-wrapper {
+  margin-bottom: 24px !important;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  margin-top: 8px;
+}
+
+.section-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--primary-color);
+}
+
+.section-header mat-icon {
+  color: var(--primary-color);
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+/* Details Grid */
+.details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px 32px;
+  margin-bottom: 0;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+
+.detail-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.detail-item label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 4px;
+}
+
+.detail-item .value {
+  font-size: 1rem;
+  color: var(--text-primary);
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.value.job-title {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.value.company-name {
+  font-weight: 500;
+}
+
+.value.salary {
+  font-weight: 600;
+  color: var(--accent-color);
+}
+
+.relative-time {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.system-id {
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+  background-color: var(--surface-color);
+  padding: 6px 10px;
+  border-radius: 4px;
+  word-break: break-all;
+  border: 1px solid var(--border-color);
+}
+
+/* Status Chip */
+.status-chip {
+  font-weight: 500 !important;
+  border-radius: 16px !important;
+  border: 1px solid rgba(0,0,0,0.12);
+  width: fit-content;
+}
+
+.status-chip.status-applied {
+  background-color: rgba(179, 157, 219, 0.25) !important;
+  color: #d1c4e9 !important;
+  border: 1px solid rgba(179, 157, 219, 0.5) !important;
+}
+
+.status-chip.status-interview {
+  background-color: rgba(255, 152, 0, 0.1) !important;
+  color: var(--accent-color) !important;
+  border-color: rgba(255, 152, 0, 0.3);
+}
+
+.status-chip.status-offer {
+  background-color: rgba(129, 199, 132, 0.25) !important;
+  color: #81c784 !important;
+  border: 1px solid rgba(129, 199, 132, 0.5) !important;
+}
+
+.status-chip.status-rejected {
+  background-color: rgba(244, 67, 54, 0.1) !important;
+  color: #f44336 !important;
+  border-color: rgba(244, 67, 54, 0.3);
+}
+
+/* URL Container */
+.url-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: var(--surface-color);
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  margin-top: 4px;
+}
+
+.value.url {
+  flex: 1;
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+  color: var(--primary-color);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Resume Info */
+.resume-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: var(--surface-color);
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  margin-top: 4px;
+}
+
+.file-icon {
+  color: var(--primary-color);
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* Notes */
+.notes-content {
+  background-color: var(--surface-color);
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  margin-top: 4px;
+}
+
+.notes-text {
+  margin: 0;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.empty-notes {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 32px 24px;
+  text-align: center;
+  color: var(--text-secondary);
+  background-color: var(--surface-color);
+  border-radius: 8px;
+  border: 1px dashed var(--border-color);
+  margin-top: 4px;
+  justify-content: center;
+}
+
+.empty-icon {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+/* Metadata Section */
+.metadata-section {
+  background-color: var(--surface-color);
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  margin-top: 4px;
+}
+
+.metadata-section .details-grid {
+  margin-bottom: 0;
+}
+
+/* Modal Actions - Base styles (overridden by global styles) */
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  /* Padding and other styles are handled in global-modal-styles */
+}
+
+.actions-left,
+.actions-right {
+  display: flex;
+  gap: 8px;
+}
+
+/* Dark Theme Adjustments */
+html.dark-theme .modal-header {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+}
+
+html.dark-theme .user-chip {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+html.dark-theme .status-chip.status-applied {
+  background-color: rgba(179, 157, 219, 0.2) !important;
+  color: #d1c4e9 !important;
+  border-color: rgba(179, 157, 219, 0.4);
+}
+
+html.dark-theme .status-chip.status-interview {
+  background-color: rgba(255, 183, 77, 0.2) !important;
+  color: #ffe082 !important;
+  border-color: rgba(255, 183, 77, 0.4);
+}
+
+html.dark-theme .status-chip.status-offer {
+  background-color: rgba(129, 199, 132, 0.2) !important;
+  color: #c8e6c9 !important;
+  border-color: rgba(129, 199, 132, 0.4);
+}
+
+html.dark-theme .status-chip.status-rejected {
+  background-color: rgba(239, 154, 154, 0.2) !important;
+  color: #ffcdd2 !important;
+  border-color: rgba(239, 154, 154, 0.4);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .modal-header {
+    padding: 16px 20px;
+  }
+
+  .header-content {
+    align-items: center;
+  }
+
+  .title-section h2 {
+    font-size: 1.25rem;
+  }
+
+  .modal-content {
+    padding: 20px 16px 20px 16px;
+  }
+
+  .details-section:last-child {
+    margin-bottom: 20px;
+  }
+
+  .job-info-section {
+    margin-top: 4px;
+  }
+
+  .details-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .detail-item.full-width {
+    grid-column: 1;
+  }
+
+  .details-section {
+    margin-bottom: 28px;
+  }
+
+  /* Force bottom margin for metadata section even if it's last */
+  .metadata-section-wrapper {
+    margin-bottom: 20px !important;
+  }
+
+  .modal-actions {
+    padding: 18px 16px;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 60px;
+  }
+
+  .actions-left,
+  .actions-right {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 480px) {
+  .modal-header {
+    padding: 14px 16px;
+  }
+
+  .modal-content {
+    padding: 16px 12px 16px 12px;
+  }
+
+  .details-section:last-child {
+    margin-bottom: 16px;
+  }
+
+  .job-info-section {
+    margin-top: 2px;
+  }
+
+  .section-header h3 {
+    font-size: 1rem;
+  }
+
+  .details-grid {
+    gap: 16px;
+  }
+
+  .details-section {
+    margin-bottom: 24px;
+  }
+
+  .url-container,
+  .resume-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 12px;
+  }
+
+  .value.url {
+    white-space: normal;
+    word-break: break-all;
+  }
+
+  .modal-actions {
+    padding: 16px 12px;
+    min-height: 56px;
+  }
+
+  .metadata-section {
+    padding: 16px;
+  }
+
+  .system-id {
+    font-size: 0.8rem;
+    padding: 4px 8px;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 360px) {
+  .modal-header {
+    padding: 12px;
+  }
+
+  .title-section h2 {
+    font-size: 1.1rem;
+    gap: 8px;
+  }
+
+  .modal-content {
+    padding: 12px 8px;
+  }
+
+  .details-grid {
+    gap: 12px;
+  }
+
+  .section-header {
+    margin-bottom: 16px;
+  }
+
+  .section-header h3 {
+    font-size: 0.95rem;
+  }
+
+  .detail-item label {
+    font-size: 0.7rem;
+  }
+
+  .detail-item .value {
+    font-size: 0.9rem;
+  }
+}

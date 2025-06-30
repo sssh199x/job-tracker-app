@@ -128,7 +128,7 @@
   background-color: rgba(129, 199, 132, 0.1) !important;
 }
 
-/* Status Chips - Following EXACT user-management pattern */
+/* Status Chips */
 .status-chip {
   font-weight: 500 !important;
   border-radius: 16px !important;
@@ -185,6 +185,14 @@
   opacity: 1;
   transform: scale(1.1);
 }
+
+.view-details-button{
+  color: var(--primary-color) !important;
+}
+.view-details-button mat-icon{
+  color: var(--primary-color) !important;
+}
+
 
 /* Edit button - primary color */
 .edit-button {
@@ -244,7 +252,7 @@ html.dark-theme {
     background-color: rgba(179, 157, 219, 0.15) !important;
   }
 
-  /* Dark theme status chips - following user-mgmt pattern */
+  /* Dark theme status chips */
   .status-chip.status-applied {
     background-color: rgba(179, 157, 219, 0.25) !important;
     color: #d1c4e9 !important;
@@ -319,7 +327,7 @@ html.dark-theme {
   }
 }
 
-/* Animation for delete confirmation (if you add a dialog later) */
+/* Animation for delete confirmation (adding a dialog later) */
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   25% { transform: translateX(-5px); }

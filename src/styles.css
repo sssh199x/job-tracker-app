@@ -87,3 +87,246 @@ app-root {
     padding: 24px;
   }
 }
+
+
+/* Mobile responsive adjustments for dialog actions */
+@media (max-width: 768px) {
+  .details-modal-panel .mat-mdc-dialog-actions {
+    padding: 18px 16px !important;
+    min-height: 60px !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .details-modal-panel .mat-mdc-dialog-actions {
+    padding: 16px 12px !important;
+    min-height: 56px !important;
+  }
+}
+
+/* ============= APPLICATION DETAILS MODAL STYLES ============= */
+
+/* Modal Panel Classes */
+.details-modal-panel {
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+.details-modal-panel.admin-modal {
+  border: 2px solid var(--primary-color) !important;
+}
+
+/* Modal Dialog Container */
+.details-modal-panel .mat-mdc-dialog-container {
+  padding: 0 !important;
+  background-color: var(--card-background) !important;
+  color: var(--text-primary) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 11px 15px -7px rgba(0, 0, 0, 0.2),
+  0 24px 38px 3px rgba(0, 0, 0, 0.14),
+  0 9px 46px 8px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Fix dialog content scrolling */
+.details-modal-panel .mat-mdc-dialog-content {
+  max-height: none !important;
+  padding: 0 24px !important;
+  margin: 0 !important;
+}
+
+.details-modal-panel .mat-mdc-dialog-actions {
+  padding: 20px 24px !important;
+  margin: 0 !important;
+  min-height: 64px !important;
+  background-color: var(--surface-color) !important;
+  border-top: 1px solid var(--border-color) !important;
+  justify-content: space-between !important;
+}
+
+/* Enhanced Menu Item Styling for Action Menus */
+.view-details-button {
+  font-weight: 500 !important;
+  position: relative !important;
+}
+
+.view-details-button::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: var(--primary-color);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.view-details-button .mat-icon {
+  color: var(--primary-color) !important;
+}
+
+.view-details-button:hover {
+  background-color: rgba(103, 58, 183, 0.08) !important;
+}
+
+.view-details-button:hover::before {
+  opacity: 1;
+}
+
+.edit-button .mat-icon {
+  color: var(--accent-color) !important;
+}
+
+.delete-action .mat-icon {
+  color: #f44336 !important;
+}
+
+.duplicate-action .mat-icon {
+  color: var(--text-secondary) !important;
+}
+
+.duplicate-action small {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-left: 8px;
+}
+
+/* Menu Items with Icons */
+.mat-mdc-menu-item .mat-icon {
+  margin-right: 12px;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+/* Dark Theme Adjustments */
+html.dark-theme .details-modal-panel .mat-mdc-dialog-container {
+  background-color: var(--card-background) !important;
+  color: var(--text-primary) !important;
+}
+
+html.dark-theme .details-modal-panel.admin-modal {
+  border-color: var(--primary-light) !important;
+}
+
+html.dark-theme .view-details-button::before {
+  background-color: var(--primary-light);
+}
+
+html.dark-theme .view-details-button:hover {
+  background-color: rgba(179, 157, 219, 0.12) !important;
+}
+
+html.dark-theme .view-details-button .mat-icon {
+  color: var(--primary-light) !important;
+}
+
+html.dark-theme .edit-button .mat-icon {
+  color: var(--accent-light) !important;
+}
+
+/* Mobile Responsive Modal */
+@media (max-width: 768px) {
+  .details-modal-panel {
+    margin: 16px !important;
+    max-width: calc(100vw - 32px) !important;
+    max-height: calc(100vh - 32px) !important;
+  }
+
+  .details-modal-panel .mat-mdc-dialog-container {
+    padding: 0 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .details-modal-panel {
+    margin: 8px !important;
+    max-width: calc(100vw - 16px) !important;
+    max-height: calc(100vh - 16px) !important;
+  }
+}
+
+/* Enhanced Action Menu Styling */
+.mat-mdc-menu-panel {
+  border-radius: 8px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.mat-mdc-menu-item {
+  border-radius: 4px !important;
+  margin: 4px 8px !important;
+  transition: all 0.2s ease !important;
+}
+
+.mat-mdc-menu-item:hover {
+  background-color: var(--hover-color) !important;
+}
+
+/* Success and Error Snackbar Styling */
+.success-snackbar {
+  background-color: #4caf50 !important;
+  color: white !important;
+}
+
+.error-snackbar {
+  background-color: #f44336 !important;
+  color: white !important;
+}
+
+/* Enhanced Table Row Hover Effects */
+.mat-mdc-row:hover {
+  background-color: var(--hover-color) !important;
+  transition: background-color 0.2s ease !important;
+}
+
+.mat-mdc-row.highlight-row {
+  background-color: rgba(76, 175, 80, 0.05) !important;
+  border-left: 3px solid #4caf50 !important;
+}
+
+html.dark-theme .mat-mdc-row.highlight-row {
+  background-color: rgba(129, 199, 132, 0.1) !important;
+  border-left-color: #c8e6c9 !important;
+}
+
+/* Action Cell Styling */
+.actions-cell {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.actions-cell .mat-mdc-icon-button {
+  width: 36px;
+  height: 36px;
+  transition: all 0.2s ease;
+}
+
+.actions-cell .mat-mdc-icon-button:hover {
+  background-color: var(--hover-color) !important;
+  transform: scale(1.05);
+}
+
+/* No-link placeholder styling */
+.no-link {
+  color: var(--text-secondary);
+  font-style: italic;
+  font-size: 0.875rem;
+}
+
+/* Tooltip Styling */
+.mat-mdc-tooltip {
+  background-color: rgba(0, 0, 0, 0.9) !important;
+  color: white !important;
+  font-size: 0.75rem !important;
+  border-radius: 4px !important;
+  max-width: 200px !important;
+}
+
+html.dark-theme .mat-mdc-tooltip {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  color: black !important;
+}

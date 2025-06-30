@@ -188,6 +188,16 @@
               </button>
 
               <mat-menu #actionMenu="matMenu">
+                <!-- View Details as FIRST option -->
+                <button mat-menu-item
+                        class="view-details-button"
+                        (click)="viewApplicationDetails(app)">
+                  <mat-icon>visibility</mat-icon>
+                  <span>View Details</span>
+                </button>
+
+                <mat-divider></mat-divider>
+
                 <!-- Edit option -->
                 <button mat-menu-item
                         class="edit-button"

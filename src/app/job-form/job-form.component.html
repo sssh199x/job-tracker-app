@@ -153,7 +153,6 @@
                 <mat-option value="">No resume selected</mat-option>
                 <mat-option *ngFor="let resume of userResumes$ | async" [value]="resume.id">
                   <div class="resume-option">
-                    <mat-icon>description</mat-icon>
                     <span class="resume-name">{{ resume.displayName }}</span>
                     <mat-chip *ngIf="resume.isDefault" class="default-chip" color="primary">Default</mat-chip>
                   </div>
@@ -193,7 +192,7 @@
                 <h4 class="resume-title">{{ selectedResume.displayName }}</h4>
                 <div class="resume-meta">
                   <span class="file-size">{{ resumeService.formatFileSize(selectedResume.fileSize) }}</span>
-                  <span class="upload-date">Uploaded {{ selectedResume.uploadDate | date:'mediumDate' }}</span>
+                  <span class="upload-date">Uploaded {{ dateUtil.formatDateShort(selectedResume.uploadDate) }}</span>
                   <mat-chip *ngIf="selectedResume.isDefault" class="default-chip" color="primary">Default Resume</mat-chip>
                 </div>
               </div>

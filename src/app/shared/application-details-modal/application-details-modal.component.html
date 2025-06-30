@@ -1,0 +1,195 @@
+<div class="modal-header">
+  <div class="header-content">
+    <div class="title-section">
+      <h2 mat-dialog-title>
+        <mat-icon>work</mat-icon>
+        Application Details
+      </h2>
+      <div class="context-info" *ngIf="data.context === 'admin' && data.userEmail">
+        <mat-chip class="user-chip">
+          <mat-icon matChipAvatar>person</mat-icon>
+          {{ data.userEmail }}
+        </mat-chip>
+      </div>
+    </div>
+    <button mat-icon-button
+            class="close-button"
+            [mat-dialog-close]="false"
+            matTooltip="Close">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+</div>
+
+<mat-dialog-content class="modal-content">
+  <!-- Job Information Section -->
+  <div class="details-section job-info-section">
+    <div class="section-header">
+      <mat-icon>work</mat-icon>
+      <h3>Job Information</h3>
+    </div>
+
+    <div class="details-grid">
+      <div class="detail-item">
+        <label>Job Title</label>
+        <span class="value job-title">{{ application.jobTitle }}</span>
+      </div>
+
+      <div class="detail-item">
+        <label>Company</label>
+        <span class="value company-name">{{ application.company }}</span>
+      </div>
+
+      <div class="detail-item">
+        <label>Location</label>
+        <span class="value">{{ application.location || 'Remote' }}</span>
+      </div>
+
+      <div class="detail-item">
+        <label>Status</label>
+        <mat-chip [class]="'status-chip ' + statusService.getJobStatusClass(application.status)">
+          <mat-icon matChipAvatar>{{ statusService.getJobStatusIcon(application.status) }}</mat-icon>
+          {{ statusService.getJobStatusLabel(application.status) }}
+        </mat-chip>
+      </div>
+    </div>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <!-- Application Details Section -->
+  <div class="details-section">
+    <div class="section-header">
+      <mat-icon>event</mat-icon>
+      <h3>Application Details</h3>
+    </div>
+
+    <div class="details-grid">
+      <div class="detail-item">
+        <label>Date Applied</label>
+        <span class="value">
+          {{ dateUtil.formatDateMedium(application.dateApplied) }}
+          <span class="relative-time">({{ dateUtil.getRelativeTime(application.dateApplied) }})</span>
+        </span>
+      </div>
+
+      <div class="detail-item">
+        <label>Salary</label>
+        <span class="value salary">
+          {{ application.salary ? (application.salary | currency) : 'Not specified' }}
+        </span>
+      </div>
+
+      <div class="detail-item full-width" *ngIf="application.jobUrl">
+        <label>Job Posting URL</label>
+        <div class="url-container">
+          <span class="value url" [matTooltip]="application.jobUrl">
+            {{ getDisplayUrl(application.jobUrl) }}
+          </span>
+          <button mat-icon-button
+                  color="primary"
+                  (click)="openJobUrl()"
+                  matTooltip="Open job posting">
+            <mat-icon>open_in_new</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resume Section -->
+  <div class="details-section" *ngIf="application.resumeId || application.resumeName">
+    <mat-divider></mat-divider>
+
+    <div class="section-header">
+      <mat-icon>description</mat-icon>
+      <h3>Resume Information</h3>
+    </div>
+
+    <div class="details-grid">
+      <div class="detail-item" *ngIf="application.resumeName">
+        <label>Resume File</label>
+        <div class="resume-info">
+          <mat-icon class="file-icon">description</mat-icon>
+          <span class="value">{{ application.resumeName }}</span>
+          <button mat-icon-button
+                  *ngIf="application.resumeUrl"
+                  color="primary"
+                  (click)="openResumeUrl()"
+                  matTooltip="View resume">
+            <mat-icon>visibility</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notes Section -->
+  <div class="details-section" *ngIf="application.notes">
+    <mat-divider></mat-divider>
+
+    <div class="section-header">
+      <mat-icon>notes</mat-icon>
+      <h3>Notes</h3>
+    </div>
+
+    <div class="notes-content">
+      <p class="notes-text">{{ application.notes }}</p>
+    </div>
+  </div>
+
+  <!-- Empty state for no notes -->
+  <div class="details-section" *ngIf="!application.notes">
+    <mat-divider></mat-divider>
+
+    <div class="section-header">
+      <mat-icon>notes</mat-icon>
+      <h3>Notes</h3>
+    </div>
+
+    <div class="empty-notes">
+      <mat-icon class="empty-icon">note_add</mat-icon>
+      <span>No notes added for this application</span>
+    </div>
+  </div>
+
+  <!-- Metadata Section (Admin only) -->
+  <div class="details-section metadata-section-wrapper" *ngIf="data.context === 'admin'">
+    <mat-divider></mat-divider>
+
+    <div class="section-header">
+      <mat-icon>info</mat-icon>
+      <h3>System Information</h3>
+    </div>
+
+    <div class="metadata-section">
+      <div class="details-grid">
+        <div class="detail-item">
+          <label>Application ID</label>
+          <span class="value system-id">{{ application.id }}</span>
+        </div>
+
+        <div class="detail-item">
+          <label>User ID</label>
+          <span class="value system-id">{{ application.userId }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions class="modal-actions">
+  <div class="actions-left">
+    <button mat-button
+            *ngIf="application.jobUrl"
+            color="primary"
+            (click)="openJobUrl()">
+      <mat-icon>open_in_new</mat-icon>
+      View Job Posting
+    </button>
+  </div>
+
+  <div class="actions-right">
+    <button mat-button [mat-dialog-close]="false">Close</button>
+  </div>
+</mat-dialog-actions>

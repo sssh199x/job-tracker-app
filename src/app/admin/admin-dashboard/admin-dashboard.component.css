@@ -169,7 +169,6 @@
   background-color: rgba(76, 175, 80, 0.1) !important;
 }
 
-/* ADDED: Status Chips - Following exact user-management pattern */
 .status-chip {
   font-weight: 500 !important;
   border-radius: 16px !important;
@@ -177,28 +176,24 @@
   min-height: 24px;
 }
 
-/* Applied status - Purple (like user role in user-mgmt) */
 .status-chip.status-applied {
   background-color: rgba(103, 58, 183, 0.2) !important;
   color: var(--primary-color) !important;
   border: 1px solid rgba(103, 58, 183, 0.4) !important;
 }
 
-/* Interview status - Orange (like admin role in user-mgmt) */
 .status-chip.status-interview {
   background-color: rgba(255, 152, 0, 0.2) !important;
   color: var(--accent-color) !important;
   border: 1px solid rgba(255, 152, 0, 0.4) !important;
 }
 
-/* Offer status - Green (like active status in user-mgmt) */
 .status-chip.status-offer {
   background-color: rgba(76, 175, 80, 0.2) !important;
   color: #4caf50 !important;
   border: 1px solid rgba(76, 175, 80, 0.4) !important;
 }
 
-/* Rejected status - Gray (like inactive status in user-mgmt) */
 .status-chip.status-rejected {
   background-color: rgba(243, 57, 57, 0.2) !important;
   color: #9e9e9e !important;
@@ -224,7 +219,6 @@ html.dark-theme {
     background-color: rgba(76, 175, 80, 0.15) !important;
   }
 
-  /* ADDED: Dark theme status chips - following user-mgmt pattern */
   .status-chip.status-applied {
     background-color: rgba(179, 157, 219, 0.25) !important;
     color: #d1c4e9 !important;
@@ -281,6 +275,15 @@ html.dark-theme {
     min-height: 24px !important;
     padding: 2px 8px !important;
   }
+}
+
+
+
+.view-details-button{
+  color: var(--primary-color) !important;
+}
+.view-details-button mat-icon{
+  color: var(--primary-color) !important;
 }
 
 /* Edit button - primary color */

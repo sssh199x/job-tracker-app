@@ -7,6 +7,7 @@ import { ExportService } from '../services/export.service';
 import { LoadingService } from '../services/loading.service';
 import { StatusService } from '../core/services/status.service';
 import { DateUtilService } from '../core/services/date-util.service';
+import { ApplicationDetailsService } from '../services/application-details.service';
 import { PermissionService } from '../services/permission.service';
 import { ConfirmationDialogService } from '../services/confirmation-dialog.service';
 import { Observable, switchMap, Subject, BehaviorSubject, combineLatest } from 'rxjs';
@@ -76,6 +77,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     private router: Router,
     private confirmationDialog: ConfirmationDialogService,
+    private applicationDetails: ApplicationDetailsService,
     public statusService: StatusService,
     public dateUtil: DateUtilService
   ) {
@@ -371,6 +373,41 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     } catch (error) {
       console.error('❌ Error duplicating application:', error);
+    }
+  }
+
+  /**
+   * View application details in modal
+   * @param app - The application to view
+   */
+  async viewApplicationDetails(app: JobApplication) {
+    console.log('👁️ View application details clicked:', app);
+    console.log('👁️ Application details:', {
+      id: app.id,
+      jobTitle: app.jobTitle,
+      company: app.company,
+      userId: app.userId
+    });
+
+    try {
+      if (!app.id) {
+        console.error('❌ Application ID is missing');
+        this.snackBar.open('Error: Application details not available', 'Close', { duration: 3000 });
+        return;
+      }
+
+      // Open details modal in user context
+      console.log('👁️ Opening user details modal for application:', app.id);
+      const result$ = this.applicationDetails.openDetailsModal(app);
+
+      // Subscribe to modal close event (optional - for analytics/logging)
+      result$.subscribe(result => {
+        console.log('👁️ Details modal closed, result:', result);
+      });
+
+    } catch (error) {
+      console.error('❌ Error opening application details:', error);
+      this.snackBar.open('Error opening application details', 'Close', { duration: 3000 });
     }
   }
 

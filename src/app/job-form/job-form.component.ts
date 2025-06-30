@@ -98,7 +98,7 @@ export class JobFormComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     public statusService: StatusService,
     public validationService: ValidationService,
-    private dateUtil: DateUtilService
+    public dateUtil: DateUtilService
   ) {
     // Initialize permissions in constructor
     this.canUploadResumes$ = this.permissions.isAuthenticated$;
