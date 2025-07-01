@@ -63,6 +63,9 @@ export class JobFormComponent implements OnInit, OnDestroy {
   isLoading = false;
   hasFormChanged = false;
 
+  // Drag and drop state
+  isDragOver = false;
+
   // Edit mode properties
   isEditMode = false;
   isAdminMode = false; // Track if admin is editing
@@ -346,14 +349,51 @@ export class JobFormComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Handle file upload for new resume
+   * Handle drag over event
    */
-  async onResumeUpload(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = true;
+  }
 
-    if (!file) return;
+  /**
+   * Handle drag leave event
+   */
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = false;
+  }
 
+  /**
+   * Handle drop event
+   */
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = false;
+
+    const files = event.dataTransfer?.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+
+      // Validate file type
+      if (file.type === 'application/pdf') {
+        this.handleFileUpload(file);
+      } else {
+        this.snackBar.open('Please drop a PDF file only', 'Close', {
+          duration: 3000,
+          panelClass: ['error-snackbar']
+        });
+      }
+    }
+  }
+
+  /**
+   * Unified file upload handler (for both click and drag-drop)
+   */
+  private async handleFileUpload(file: File): Promise<void> {
     try {
       this.isUploadingResume = true;
 
@@ -388,9 +428,23 @@ export class JobFormComponent implements OnInit, OnDestroy {
       );
     } finally {
       this.isUploadingResume = false;
-      // Clear the input
-      input.value = '';
     }
+  }
+
+
+  /**
+   * Handle file upload for new resume
+   */
+  async onResumeUpload(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file) return;
+
+    await this.handleFileUpload(file);
+
+    // Clear the input
+    input.value = '';
   }
 
   /**
